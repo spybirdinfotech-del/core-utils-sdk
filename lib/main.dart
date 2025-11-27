@@ -213,7 +213,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Permission Testjauhgfkljadsfghlkdjasfghsdljfhlsdfhgldshfsdlkjfhldks',
+      title: 'Permission Test',
       theme: ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple)),
       builder: (context, child) {
         return SnackbarHandler.setup(child: child ?? const SizedBox());
