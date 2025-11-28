@@ -1,46 +1,142 @@
-name: Flutter CI
+name: Flutter CI/CD - All Platforms
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
 
 jobs:
   build:
+
     runs-on: ubuntu-latest
+    env:
+      FIREBASE_PROJECT_ID: corekit-sdk
+
+    strategy:
+      matrix:
+        platform: [android, web, windows]
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      # Checkout
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Setup Flutter
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.7'
+
+      # Dependencies
+      - name: Install dependencies
+        run: flutter pub get
+
+      # Analyze
+      - name: Analyze code
+        run: flutter analyze
+
+      # Tests
+      - name: Run tests
+        run: flutter test
+
+      # Build per platform
+      - name: Build ${{ matrix.platform }}
+        run: |
+          if [ "${{ matrix.platform }}" == "android" ]; then
+            flutter build apk --release
+          elif [ "${{ matrix.platform }}" == "web" ]; then
+            flutter build web --release
+          elif [ "${{ matrix.platform }}" == "windows" ]; then
+            flutter build windows --release
+          fi
+
+      # Upload artifacts
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.platform }}-build
+          path: |
+            build/app/outputs/flutter-apk/app-release.apk
+            build/web
+            build/windows/runner/Release
+
+  ios_build:
+    name: iOS Build
+    runs-on: macos-latest
+    env:
+      FIREBASE_PROJECT_ID: corekit-sdk
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.35.7'
 
-      - name: Install Dependencies
+      - name: Install dependencies
         run: flutter pub get
 
-      # 🔥 Removed flutter analyze (this was causing failure)
+      - name: Analyze code
+        run: flutter analyze
 
-      - name: Run Tests
-        run: flutter test || true   # test failures will not stop build
+      - name: Run tests
+        run: flutter test
 
-      - name: Build APK
-        run: flutter build apk --release
+      - name: Build iOS
+        run: flutter build ios --release --no-codesign
 
-      - name: Build AAB
-        run: flutter build appbundle --release
-
-      - name: Upload APK File
-        uses: actions/upload-artifact@v4
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v3
         with:
-          name: flutter-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: ios-build
+          path: build/ios/iphoneos
 
-      - name: Upload AAB File
-        uses: actions/upload-artifact@v4
+  deploy:
+    name: Deploy All Platforms
+    needs: [build, ios_build]
+    runs-on: ubuntu-latest
+    env:
+      FIREBASE_PROJECT_ID: corekit-sdk
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Install Firebase CLI
+      - name: Install Firebase CLI
+        uses: w9jds/firebase-action@v2.2.0
+
+      # 1️⃣ Web Hosting Deployment
+      - name: Deploy Web to Firebase Hosting
+        uses: w9jds/firebase-action@v2.2.0
         with:
-          name: flutter-aab
-          path: build/app/outputs/bundle/release/app-release.aab
+          args: deploy --project ${{ env.FIREBASE_PROJECT_ID }} --only hosting
+          token: ${{ secrets.FIREBASE_TOKEN }}
+
+      # 2️⃣ Android App Distribution
+      - name: Deploy Android APK to Firebase App Distribution
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+          appId: 1:286967535054:android:89ca18c67ffb49b28a079f
+          token: ${{ secrets.FIREBASE_TOKEN }}
+          groups: testers
+          file: build/app/outputs/flutter-apk/app-release.apk
+
+      # 3️⃣ iOS App Distribution
+      - name: Deploy iOS IPA to Firebase App Distribution
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+          appId: 1:286967535054:ios:6aa1b0a861188e718a079f
+          token: ${{ secrets.FIREBASE_TOKEN }}
+          groups: testers
+          file: build/ios/iphoneos/Runner.ipa
+
+      # 4️⃣ Windows Artifact (optional)
+      - name: Upload Windows build artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: windows-build
+          path: build/windows/runner/Release

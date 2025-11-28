@@ -41,47 +41,49 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyBultewoGNQRl1aX1SumuHg-jXwL9D6xoc',
-    appId: '1:201585737993:web:2fa84229d5fa90c85913d8',
-    messagingSenderId: '201585737993',
-    projectId: 'sample-notification-300d2',
-    authDomain: 'sample-notification-300d2.firebaseapp.com',
-    storageBucket: 'sample-notification-300d2.firebasestorage.app',
+    apiKey: 'AIzaSyCLX22iZ-Z8vrWurl2RSYzPwcaUmKm2Ccg',
+    appId: '1:286967535054:web:781a0fbabe6dfff18a079f',
+    messagingSenderId: '286967535054',
+    projectId: 'corekit-sdk',
+    authDomain: 'corekit-sdk.firebaseapp.com',
+    storageBucket: 'corekit-sdk.firebasestorage.app',
+    measurementId: 'G-S19WN4N1PF',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyCdS-Bu_RsSpGsQmRnw4CSttsG_KjJlcHU',
-    appId: '1:201585737993:android:265d3fdbbaafc5775913d8',
-    messagingSenderId: '201585737993',
-    projectId: 'sample-notification-300d2',
-    storageBucket: 'sample-notification-300d2.firebasestorage.app',
+    apiKey: 'AIzaSyAKOpEDonGMv6AG8UVjc1xlP1Sy2bLxekk',
+    appId: '1:286967535054:android:89ca18c67ffb49b28a079f',
+    messagingSenderId: '286967535054',
+    projectId: 'corekit-sdk',
+    storageBucket: 'corekit-sdk.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyCd9rn7lpN90J0W68sQro4IvOcjUfdIbCY',
-    appId: '1:201585737993:ios:3ab45212179027335913d8',
-    messagingSenderId: '201585737993',
-    projectId: 'sample-notification-300d2',
-    storageBucket: 'sample-notification-300d2.firebasestorage.app',
-    iosBundleId: 'com.example.sampleProject',
+    apiKey: 'AIzaSyDeOZTSvdRIqt51sNg6WQBriFbMsD8OC2s',
+    appId: '1:286967535054:ios:6aa1b0a861188e718a079f',
+    messagingSenderId: '286967535054',
+    projectId: 'corekit-sdk',
+    storageBucket: 'corekit-sdk.firebasestorage.app',
+    iosBundleId: 'com.example.corekitSdk',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyCd9rn7lpN90J0W68sQro4IvOcjUfdIbCY',
-    appId: '1:201585737993:ios:3ab45212179027335913d8',
-    messagingSenderId: '201585737993',
-    projectId: 'sample-notification-300d2',
-    storageBucket: 'sample-notification-300d2.firebasestorage.app',
-    iosBundleId: 'com.example.sampleProject',
+    apiKey: 'AIzaSyDeOZTSvdRIqt51sNg6WQBriFbMsD8OC2s',
+    appId: '1:286967535054:ios:6aa1b0a861188e718a079f',
+    messagingSenderId: '286967535054',
+    projectId: 'corekit-sdk',
+    storageBucket: 'corekit-sdk.firebasestorage.app',
+    iosBundleId: 'com.example.corekitSdk',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyBultewoGNQRl1aX1SumuHg-jXwL9D6xoc',
-    appId: '1:201585737993:web:ae466ab0835ce2665913d8',
-    messagingSenderId: '201585737993',
-    projectId: 'sample-notification-300d2',
-    authDomain: 'sample-notification-300d2.firebaseapp.com',
-    storageBucket: 'sample-notification-300d2.firebasestorage.app',
+    apiKey: 'AIzaSyCLX22iZ-Z8vrWurl2RSYzPwcaUmKm2Ccg',
+    appId: '1:286967535054:web:c055050e20c4c7f78a079f',
+    messagingSenderId: '286967535054',
+    projectId: 'corekit-sdk',
+    authDomain: 'corekit-sdk.firebaseapp.com',
+    storageBucket: 'corekit-sdk.firebasestorage.app',
+    measurementId: 'G-0ERFDQB71Z',
   );
 
 }
