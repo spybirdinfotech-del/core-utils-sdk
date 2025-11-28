@@ -1,0 +1,65 @@
+name: Deploy All Platforms (Deploy Web + Firebase + Play Store + IPA)
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    needs: [build, ios_build]
+    runs-on: ubuntu-latest
+    env:
+      FIREBASE_PROJECT_ID: corekit-sdk
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Firebase CLI
+        uses: w9jds/firebase-action@v2.2.0
+
+      - name: Deploy Web to Firebase Hosting
+        uses: w9jds/firebase-action@v2.2.0
+        with:
+          args: deploy --project ${{ env.FIREBASE_PROJECT_ID }} --only hosting
+          token: ${{ secrets.FIREBASE_TOKEN }}
+
+      - name: Download Android build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: android-build
+
+      - name: Upload Android APK to Firebase App Distribution
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+          appId: 1:286967535054:android:89ca18c67ffb49b28a079f
+          token: ${{ secrets.FIREBASE_TOKEN }}
+          groups: testers
+          file: build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Upload Android AAB to Google Play Store
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
+          packageName: com.example.corekit_sdk
+          releaseFile: build/app/outputs/bundle/release/app-release.aab
+          track: production
+
+      - name: Download iOS build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ios-build
+
+      - name: Upload iOS IPA to Firebase App Distribution
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+          appId: 1:286967535054:ios:6aa1b0a861188e718a079f
+          token: ${{ secrets.FIREBASE_TOKEN }}
+          groups: testers
+          file: build/ios/iphoneos/Runner.ipa
+
+      - name: Upload Windows build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: build/windows/runner/Release
