@@ -32,8 +32,9 @@ jobs:
       - name: Deploy Web to Firebase Hosting
         uses: w9jds/firebase-action@v2.2.0
         with:
-          args: deploy --project ${{ env.FIREBASE_PROJECT_ID }} --only hosting
-          token: ${{ secrets.FIREBASE_TOKEN }}
+          args: deploy --only hosting
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
       - name: Download Android build artifact
         uses: actions/download-artifact@v4
