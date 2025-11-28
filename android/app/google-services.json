@@ -1,20 +1,20 @@
 {
   "project_info": {
-    "project_number": "201585737993",
-    "project_id": "sample-notification-300d2",
-    "storage_bucket": "sample-notification-300d2.firebasestorage.app"
+    "project_number": "286967535054",
+    "project_id": "corekit-sdk",
+    "storage_bucket": "corekit-sdk.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:201585737993:android:265d3fdbbaafc5775913d8",
+        "mobilesdk_app_id": "1:286967535054:android:89ca18c67ffb49b28a079f",
         "android_client_info": {
           "package_name": "com.example.corekit_sdk"
         }
       },
       "oauth_client": [
         {
-          "client_id": "201585737993-u5lb6bf7blh6inrlpud3bek4ji077rli.apps.googleusercontent.com",
+          "client_id": "286967535054-r2d3jqdkt1jpd3tiiiqespnmgur46lmt.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.example.corekit_sdk",
@@ -22,27 +22,27 @@
           }
         },
         {
-          "client_id": "201585737993-6jj9n7obl2ecuk9ufn60fo1cums3bl7v.apps.googleusercontent.com",
+          "client_id": "286967535054-iqh2vrukdaileqc8puh0iucr442st8e4.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyCdS-Bu_RsSpGsQmRnw4CSttsG_KjJlcHU"
+          "current_key": "AIzaSyAKOpEDonGMv6AG8UVjc1xlP1Sy2bLxekk"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "201585737993-6jj9n7obl2ecuk9ufn60fo1cums3bl7v.apps.googleusercontent.com",
+              "client_id": "286967535054-iqh2vrukdaileqc8puh0iucr442st8e4.apps.googleusercontent.com",
               "client_type": 3
             },
             {
-              "client_id": "201585737993-086gvhnfm0238lg59qcv08sedgan6stg.apps.googleusercontent.com",
+              "client_id": "286967535054-42j7jgqhqtdf57gtu4lpd88ialv5s2uk.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.example.sampleProject"
+                "bundle_id": "com.example.corekitSdk"
               }
             }
           ]
