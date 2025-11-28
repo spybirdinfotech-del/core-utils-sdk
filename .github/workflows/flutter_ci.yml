@@ -59,6 +59,7 @@ jobs:
             build/web
             build/windows/runner/Release
 
+
   build_playstore:
     runs-on: ubuntu-latest
 
@@ -77,12 +78,22 @@ jobs:
       - name: Build APK
         run: flutter build apk --release
 
+          # --- SIGN APK ---
+      - name: Sign APK
+        uses: r0adkll/sign-android-release@v1
+        with:
+          releaseDirectory: build/app/outputs/flutter-apk
+          signingKeyBase64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          alias: ${{ secrets.ANDROID_KEYSTORE_ALIAS }}
+          keyStorePassword: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          keyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
       - name: Upload to Play Store
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJson: ${{ secrets.GOOGLE_PLAY_JSON }}
           packageName: com.example.corekit_sdk
-          releaseFile: build/app/outputs/flutter-apk/app-release.apk
+          releaseFile: build/app/outputs/flutter-apk/app-release-signed.apk
           track: internal
 
   ios_build:
@@ -143,12 +154,13 @@ jobs:
         run: flutter build apk --release
 
       - name: Upload to Firebase App Distribution
-        run: |
-          npm install -g firebase-tools
-          firebase appdistribution:distribute build/app/outputs/flutter-apk/app-release.apk \
-          --app ${{ secrets.FIREBASE_APP_ID }} \
-          --groups "Testers" \
-          --token ${{ secrets.FIREBASE_TOKEN }}        
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+          appId: ${{ secrets.FIREBASE_APP_ID }}
+          serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          groups: Testers
+          file: build/app/outputs/flutter-apk/app-release.apk
+
 
   deploy:
     name: Deploy All Platforms
