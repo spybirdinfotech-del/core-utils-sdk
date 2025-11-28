@@ -9,20 +9,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Checkout project
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # Install Flutter
       - name: Install Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
 
+      # Install pub packages
       - name: Install dependencies
         run: flutter pub get
 
+      # Build APK
       - name: Build APK
         run: flutter build apk --release
 
+      # Sign APK
       - name: Sign APK
         uses: r0adkll/sign-android-release@v1
         with:
@@ -33,6 +38,7 @@ jobs:
           keyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
           buildToolsVersion: "34.0.0"
 
+      # Upload to Google Play
       - name: Upload to Play Store
         uses: r0adkll/upload-google-play@v1
         with:
