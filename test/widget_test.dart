@@ -14,7 +14,7 @@ import 'package:smartui_components/custom_widget/time_picker_view/time_picker_wi
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const CustomTimePickerWidget(label: 'dob',));
+    await tester.pumpWidget(const MyApp());
 
     // Verify that our counter starts at 0.
     expect(find.text('0'), findsOneWidget);
