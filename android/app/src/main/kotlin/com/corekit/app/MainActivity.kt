@@ -1,4 +1,4 @@
-package com.example.corekit_sdk
+package com.corekit.app
 
 import io.flutter.embedding.android.FlutterActivity
 

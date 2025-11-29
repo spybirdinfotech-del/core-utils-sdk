@@ -59,7 +59,7 @@ jobs:
       - name: Upload Android APK to Firebase App Distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
-          appId: 1:286967535054:android:89ca18c67ffb49b28a079f
+          appId: 1:222652963588:android:df44307667e8a5b3454e51
           token: ${{ secrets.FIREBASE_TOKEN }}
           file: build/app/outputs/flutter-apk/app-release.apk
 
@@ -69,7 +69,7 @@ jobs:
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
-          packageName: com.example.corekit_sdk
+          packageName: com.corekit.app
           releaseFile: build/app/outputs/bundle/release/app-release.aab
           track: internal
 
@@ -88,7 +88,7 @@ jobs:
       - name: Upload iOS IPA
         uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
-          appId: 1:286967535054:ios:6aa1b0a861188e718a079f
+          appId: 1:222652963588:android:df44307667e8a5b3454e51
           token: ${{ secrets.FIREBASE_TOKEN }}
           file: build/ios/iphoneos/Runner.ipa
 

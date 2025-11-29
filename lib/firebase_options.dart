@@ -41,49 +41,47 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyCLX22iZ-Z8vrWurl2RSYzPwcaUmKm2Ccg',
-    appId: '1:286967535054:web:781a0fbabe6dfff18a079f',
-    messagingSenderId: '286967535054',
-    projectId: 'corekit-sdk',
-    authDomain: 'corekit-sdk.firebaseapp.com',
-    storageBucket: 'corekit-sdk.firebasestorage.app',
-    measurementId: 'G-S19WN4N1PF',
+    apiKey: 'AIzaSyDsvPrQ-tjoWvq3N1kwhqDHWRBMBpClf0A',
+    appId: '1:222652963588:web:c92d967f3ddc9fe1454e51',
+    messagingSenderId: '222652963588',
+    projectId: 'corekit-sdk-99a43',
+    authDomain: 'corekit-sdk-99a43.firebaseapp.com',
+    storageBucket: 'corekit-sdk-99a43.firebasestorage.app',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyAKOpEDonGMv6AG8UVjc1xlP1Sy2bLxekk',
-    appId: '1:286967535054:android:89ca18c67ffb49b28a079f',
-    messagingSenderId: '286967535054',
-    projectId: 'corekit-sdk',
-    storageBucket: 'corekit-sdk.firebasestorage.app',
+    apiKey: 'AIzaSyBEPk8GC8-HiXyOMt9uRgH7S-VPvQ733-w',
+    appId: '1:222652963588:android:df44307667e8a5b3454e51',
+    messagingSenderId: '222652963588',
+    projectId: 'corekit-sdk-99a43',
+    storageBucket: 'corekit-sdk-99a43.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyDeOZTSvdRIqt51sNg6WQBriFbMsD8OC2s',
-    appId: '1:286967535054:ios:6aa1b0a861188e718a079f',
-    messagingSenderId: '286967535054',
-    projectId: 'corekit-sdk',
-    storageBucket: 'corekit-sdk.firebasestorage.app',
-    iosBundleId: 'com.example.corekitSdk',
+    apiKey: 'AIzaSyCgSXA-GdWCvxh33cNEq1-v3OgIIMnps8U',
+    appId: '1:222652963588:ios:6270dd3b290c7aa9454e51',
+    messagingSenderId: '222652963588',
+    projectId: 'corekit-sdk-99a43',
+    storageBucket: 'corekit-sdk-99a43.firebasestorage.app',
+    iosBundleId: 'com.corekit.app',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyDeOZTSvdRIqt51sNg6WQBriFbMsD8OC2s',
-    appId: '1:286967535054:ios:6aa1b0a861188e718a079f',
-    messagingSenderId: '286967535054',
-    projectId: 'corekit-sdk',
-    storageBucket: 'corekit-sdk.firebasestorage.app',
-    iosBundleId: 'com.example.corekitSdk',
+    apiKey: 'AIzaSyCgSXA-GdWCvxh33cNEq1-v3OgIIMnps8U',
+    appId: '1:222652963588:ios:6270dd3b290c7aa9454e51',
+    messagingSenderId: '222652963588',
+    projectId: 'corekit-sdk-99a43',
+    storageBucket: 'corekit-sdk-99a43.firebasestorage.app',
+    iosBundleId: 'com.corekit.app',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyCLX22iZ-Z8vrWurl2RSYzPwcaUmKm2Ccg',
-    appId: '1:286967535054:web:c055050e20c4c7f78a079f',
-    messagingSenderId: '286967535054',
-    projectId: 'corekit-sdk',
-    authDomain: 'corekit-sdk.firebaseapp.com',
-    storageBucket: 'corekit-sdk.firebasestorage.app',
-    measurementId: 'G-0ERFDQB71Z',
+    apiKey: 'AIzaSyDsvPrQ-tjoWvq3N1kwhqDHWRBMBpClf0A',
+    appId: '1:222652963588:web:5cb30da203fd5f4a454e51',
+    messagingSenderId: '222652963588',
+    projectId: 'corekit-sdk-99a43',
+    authDomain: 'corekit-sdk-99a43.firebaseapp.com',
+    storageBucket: 'corekit-sdk-99a43.firebasestorage.app',
   );
 
 }

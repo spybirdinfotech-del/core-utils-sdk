@@ -29,6 +29,5 @@ jobs:
         run: |
           npm install -g firebase-tools
           firebase appdistribution:distribute build/app/outputs/flutter-apk/app-release.apk \
-          --app 1:286967535054:android:89ca18c67ffb49b28a079f \
-          --testers "bhaktikotadiya8@gmail.com" \
+          --app 1:222652963588:android:df44307667e8a5b3454e51  \
           --token ${{ secrets.FIREBASE_TOKEN }}

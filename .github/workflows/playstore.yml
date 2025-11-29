@@ -43,6 +43,6 @@ jobs:
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJson: ${{ secrets.GOOGLE_PLAY_JSON }}
-          packageName: com.example.corekit_sdk
+          packageName: com.corekit.app
           releaseFile: build/app/outputs/flutter-apk/app-release-signed.apk
           track: internal
