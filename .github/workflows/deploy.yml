@@ -13,22 +13,27 @@ jobs:
       FIREBASE_PROJECT_ID: corekit-sdk
 
     steps:
+      # 1. Checkout Code
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # 2. Install Flutter
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      # 3. Install Firebase CLI
       - name: Install Firebase CLI
         uses: w9jds/firebase-action@v2.2.0
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
-      - name: Build iOS for CI
-        run: flutter build ios --release --simulator --no-codesign
+      # 4. Build Flutter Web
+      - name: Build Flutter Web
+        run: flutter build web --release
 
-      - name: Upload iOS IPA artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios-build
-          path: build/ios/iphonesimulator/Runner.app
-
-
+      # 5. Deploy Web to Firebase Hosting
       - name: Deploy Web to Firebase Hosting
         uses: w9jds/firebase-action@v2.2.0
         with:
@@ -36,20 +41,30 @@ jobs:
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
-      - name: Download Android build artifact
-        uses: actions/download-artifact@v4
+      # 6. Build Android APK + AAB
+      - name: Build Android APK
+        run: flutter build apk --release
+
+      - name: Build Android AAB
+        run: flutter build appbundle --release
+
+      # 7. Upload Android Build Artifact
+      - name: Upload Android Artifact
+        uses: actions/upload-artifact@v4
         with:
           name: android-build
+          path: build/app/outputs/
 
+      # 8. Upload Android APK to Firebase App Distribution
       - name: Upload Android APK to Firebase App Distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
           appId: 1:286967535054:android:89ca18c67ffb49b28a079f
           token: ${{ secrets.FIREBASE_TOKEN }}
-          groups: testers
           file: build/app/outputs/flutter-apk/app-release.apk
 
-      - name: Upload Android AAB to Google Play Store
+      # 9. Upload Android AAB to Play Store
+      - name: Upload AAB to Google Play Store
         if: github.event_name == 'push'
         uses: r0adkll/upload-google-play@v1
         with:
@@ -58,20 +73,27 @@ jobs:
           releaseFile: build/app/outputs/bundle/release/app-release.aab
           track: production
 
-      - name: Download iOS build artifact
-        uses: actions/download-artifact@v4
+      # 10. Build iOS (Simulator only)
+      - name: Build iOS for CI
+        run: flutter build ios --release --simulator --no-codesign
+
+      # 11. Upload iOS Build Artifact
+      - name: Upload iOS Artifact
+        uses: actions/upload-artifact@v4
         with:
           name: ios-build
+          path: build/ios/iphonesimulator/Runner.app
 
-      - name: Upload iOS IPA to Firebase App Distribution
+      # 12. Upload iOS IPA to Firebase App Distribution
+      - name: Upload iOS IPA
         uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
           appId: 1:286967535054:ios:6aa1b0a861188e718a079f
           token: ${{ secrets.FIREBASE_TOKEN }}
-          groups: testers
           file: build/ios/iphoneos/Runner.ipa
 
-      - name: Upload Windows build artifact
+      # 13. Upload Windows build artifact (optional)
+      - name: Upload Windows Build Artifact
         uses: actions/upload-artifact@v4
         with:
           name: windows-build
