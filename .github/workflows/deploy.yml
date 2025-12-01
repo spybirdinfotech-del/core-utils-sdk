@@ -42,7 +42,7 @@ jobs:
 
       # 10. Build iOS IPA (No Codesign)
       - name: Build iOS for CI
-        run: flutter build ipa --release --no-codesign
+        run: flutter build ipa --no-codesign --flavor ${{ github.event.inputs.flavor }} --target lib/main_${{ github.event.inputs.flavor }}.dart
 
       # 11. Upload iOS Build Artifact
       - name: Upload iOS Artifact
@@ -58,20 +58,6 @@ jobs:
           appId: 1:222652963588:ios:6270dd3b290c7aa9454e51
           token: ${{ secrets.FIREBASE_TOKEN }}
           file: build/ios/ipa/Runner.ipa
-
-#      # 6. Build Android
-#      - name: Build Android APK
-#        run: flutter build apk --release
-#
-#      - name: Build Android AAB
-#        run: flutter build appbundle --release
-#
-#      # 7. Upload Android Build Artifacts
-#      - name: Upload Android Artifact
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: android-build
-#          path: build/app/outputs/
 #
 #      # 8. Upload APK to Firebase App Distribution
 #      - name: Upload Android APK to Firebase App Distribution
@@ -91,33 +77,3 @@ jobs:
 #          releaseFile: build/app/outputs/bundle/release/app-release.aab
 #          track: internal
 #          status: completed
-#
-#      # 10. Build iOS IPA (No Codesign)
-#      - name: Build iOS for CI
-#        run: flutter build ipa --release --no-codesign
-#
-#      # 11. Upload iOS Build Artifact
-#      - name: Upload iOS Artifact
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: ios-build
-#          path: build/ios/ipa/Runner.ipa
-#
-#      # 12. Upload iOS IPA to Firebase App Distribution
-#      - name: Upload iOS IPA
-#        uses: wzieba/Firebase-Distribution-Github-Action@v1
-#        with:
-#          appId: 1:222652963588:ios:6270dd3b290c7aa9454e51
-#          token: ${{ secrets.FIREBASE_TOKEN }}
-#          file: build/ios/ipa/Runner.ipa
-#
-#      # 13. Build Windows (Optional)
-#      - name: Build Windows
-#        run: flutter build windows --release
-#
-#      # 14. Upload Windows Build Artifact
-#      - name: Upload Windows Build Artifact
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: windows-build
-#          path: build/windows/runner/Release
