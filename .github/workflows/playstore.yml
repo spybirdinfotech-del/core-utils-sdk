@@ -78,5 +78,5 @@ jobs:
       # 10. Dry-run message
       - name: Dry-run message
         if: ${{ github.event.inputs.publish != 'true' }}
-        run:
-         echo "Dry run complete: APK built and uploaded as artifact, signing & Play Store upload skipped."
+        run: |
+          echo "Dry run complete: APK built and uploaded as artifact, signing & Play Store upload skipped."
