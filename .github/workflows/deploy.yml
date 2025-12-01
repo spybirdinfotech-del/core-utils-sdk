@@ -58,7 +58,7 @@ jobs:
           channel: stable
 
       - name: Flutter Pub Get
-        run: flutter pub get      # MUST RUN BEFORE POD INSTALL
+        run: flutter pub get
 
       - name: Install CocoaPods
         run: sudo gem install cocoapods
@@ -77,9 +77,12 @@ jobs:
           name: ios-build
           path: build/ios/ipa/Runner.ipa
 
-      - name: Upload iOS IPA to Firebase App Distribution
-        uses: wzieba/Firebase-Distribution-Github-Action@v1
-        with:
-          appId: 1:222652963588:ios:6270dd3b290c7aa9454e51
-          token: ${{ secrets.FIREBASE_TOKEN }}
-          file: build/ios/ipa/Runner.ipa
+      # FIX: Use CLI for upload
+      - name: Install Firebase CLI
+        run: curl -sL https://firebase.tools | bash
+
+      - name: Upload IPA to Firebase App Distribution
+        run: |
+          firebase appdistribution:distribute build/ios/ipa/Runner.ipa \
+            --app 1:222652963588:ios:6270dd3b290c7aa9454e51 \
+            --token "${{ secrets.FIREBASE_TOKEN }}"
