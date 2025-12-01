@@ -80,3 +80,48 @@ jobs:
         if: ${{ github.event.inputs.publish != 'true' }}
         run: |
           echo "Dry run complete: APK built and uploaded as artifact, signing & Play Store upload skipped."
+
+  # ---------------------------------------------------------
+  # iOS JOB (requires Mac)
+  # ---------------------------------------------------------
+    ios_build:
+      runs-on: macos-latest
+      needs: android_build  # optional dependency
+
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v3
+
+        - name: Install Flutter
+          uses: subosito/flutter-action@v2
+          with:
+            channel: stable
+
+        - name: Install dependencies
+          run: flutter pub get
+
+        # iOS build
+        - name: Build IPA
+          run: flutter build ipa --release --export-options-plist=ios/ExportOptions.plist
+
+         # Upload IPA artifact for manual testing
+        - name: Upload IPA artifact (dry run)
+          if: ${{ github.event.inputs.publish != 'true' }}
+          uses: actions/upload-artifact@v4
+          with:
+            name: ios-app-release
+            path: build/ios/ipa/*.ipa
+
+      # Upload to TestFlight using App Store Connect
+        - name: Upload to TestFlight
+          if: ${{ github.event.inputs.publish == 'true' }}
+          uses: apple-actions/upload-testflight@v2
+          with:
+            app-path: build/ios/ipa/*.ipa
+            api-key-id: ${{ secrets.APP_STORE_KEY_ID }}
+            api-issuer-id: ${{ secrets.APP_STORE_ISSUER_ID }}
+            api-private-key: ${{ secrets.APP_STORE_PRIVATE_KEY }}
+
+        - name: Dry Run Message
+          if: ${{ github.event.inputs.publish != 'true' }}
+          run: echo "iOS dry-run completed."

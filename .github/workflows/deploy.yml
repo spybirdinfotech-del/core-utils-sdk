@@ -68,7 +68,7 @@ jobs:
 
       - name: Build IPA (No Code Sign)
         run: |
-          flutter build ipa --release --no-codesign
+          flutter build ipa --release --no-codesign --export-method ad-hoc
           echo "----- IPA Directory -----"
           ls -R build/ios/ipa || echo "IPA not found"
 
