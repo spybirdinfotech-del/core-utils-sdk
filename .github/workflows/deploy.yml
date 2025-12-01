@@ -36,26 +36,25 @@ jobs:
       - name: Deploy Web to Firebase Hosting
         uses: w9jds/firebase-action@v2.2.0
         with:
-          args: deploy --only hosting
+          args: deploy --only hosting --project ${{ env.FIREBASE_PROJECT_ID }}
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-          FIREBASE_PROJECT_ID: corekit-sdk-99a43
 
-      # 6. Build Android APK + AAB
+      # 6. Build Android
       - name: Build Android APK
         run: flutter build apk --release
 
       - name: Build Android AAB
         run: flutter build appbundle --release
 
-      # 7. Upload Android Build Artifact
+      # 7. Upload Android Build Artifacts
       - name: Upload Android Artifact
         uses: actions/upload-artifact@v4
         with:
           name: android-build
           path: build/app/outputs/
 
-      # 8. Upload Android APK to Firebase App Distribution
+      # 8. Upload APK to Firebase App Distribution
       - name: Upload Android APK to Firebase App Distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
@@ -63,7 +62,7 @@ jobs:
           token: ${{ secrets.FIREBASE_TOKEN }}
           file: build/app/outputs/flutter-apk/app-release.apk
 
-      # 9. Upload Android AAB to Play Store
+      # 9. Upload AAB to Google Play Store
       - name: Upload AAB to Google Play Store
         if: github.event_name == 'push'
         uses: r0adkll/upload-google-play@v1
@@ -73,7 +72,7 @@ jobs:
           releaseFile: build/app/outputs/bundle/release/app-release.aab
           track: internal
 
-      # 10. Build iOS (Simulator only)
+      # 10. Build iOS IPA (No Codesign)
       - name: Build iOS for CI
         run: flutter build ipa --release --no-codesign
 
@@ -82,7 +81,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ios-build
-          path: build/ios/iphonesimulator/Runner.app
+          path: build/ios/ipa/Runner.ipa
 
       # 12. Upload iOS IPA to Firebase App Distribution
       - name: Upload iOS IPA
@@ -90,9 +89,13 @@ jobs:
         with:
           appId: 1:222652963588:ios:6270dd3b290c7aa9454e51
           token: ${{ secrets.FIREBASE_TOKEN }}
-          file: build/ios/iphoneos/Runner.ipa
+          file: build/ios/ipa/Runner.ipa
 
-      # 13. Upload Windows build artifact (optional)
+      # 13. Build Windows (Optional)
+      - name: Build Windows
+        run: flutter build windows --release
+
+      # 14. Upload Windows Build Artifact
       - name: Upload Windows Build Artifact
         uses: actions/upload-artifact@v4
         with:
