@@ -1,4 +1,4 @@
-name: Deploy All Platforms (Deploy Web + Firebase + Play Store + IPA)
+name: Deploy All Platforms (Web + iOS IPA)
 
 on:
   workflow_dispatch:
@@ -7,32 +7,31 @@ on:
       - main
 
 jobs:
-  deploy:
+
+  # ---------------------------------------------------------
+  # JOB 1 — WEB DEPLOY (RUNS ON UBUNTU)
+  # ---------------------------------------------------------
+  web_deploy:
     runs-on: ubuntu-latest
     env:
       FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
       FIREBASE_PROJECT_ID: corekit-sdk-99a43
 
     steps:
-      # 1. Checkout Code
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Install Flutter
       - name: Install Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
 
-      # 3. Install Firebase CLI
       - name: Install Firebase CLI
         run: curl -sL https://firebase.tools | bash
 
-      # 4. Build Flutter Web
       - name: Build Flutter Web
         run: flutter build web --release
 
-      # 5. Deploy Web to Firebase Hosting
       - name: Deploy Web to Firebase Hosting
         uses: w9jds/firebase-action@v2.2.0
         with:
@@ -40,40 +39,44 @@ jobs:
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
-      # 10. Build iOS IPA (No Codesign)
-      - name: Build IPA
+  # ---------------------------------------------------------
+  # JOB 2 — IOS IPA BUILD + UPLOAD (RUNS ON macOS)
+  # ---------------------------------------------------------
+  ios_build:
+    needs: web_deploy
+    runs-on: macos-latest
+    env:
+      FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Install CocoaPods
+        run: sudo gem install cocoapods
+
+      - name: Install iOS Pods
+        run: |
+          cd ios
+          pod install
+
+      - name: Build IPA (No Code Sign)
         run: flutter build ipa --release --no-codesign
 
-      # 11. Upload IPA Build Artifact
       - name: Upload IPA Artifact
         uses: actions/upload-artifact@v4
         with:
           name: ios-build
           path: build/ios/ipa/Runner.ipa
 
-      # 12. Upload iOS IPA to Firebase App Distribution
-      - name: Upload iOS IPA
+      - name: Upload iOS IPA to Firebase App Distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
           appId: 1:222652963588:ios:6270dd3b290c7aa9454e51
           token: ${{ secrets.FIREBASE_TOKEN }}
           file: build/ios/ipa/Runner.ipa
-#
-#      # 8. Upload APK to Firebase App Distribution
-#      - name: Upload Android APK to Firebase App Distribution
-#        uses: wzieba/Firebase-Distribution-Github-Action@v1
-#        with:
-#          appId: 1:222652963588:android:df44307667e8a5b3454e51
-#          token: ${{ secrets.FIREBASE_TOKEN }}
-#          file: build/app/outputs/flutter-apk/app-release.apk
-#
-#      # 9. Upload AAB to Google Play Store
-#      - name: Upload AAB to Google Play Store
-#        if: github.event_name == 'push'
-#        uses: r0adkll/upload-google-play@v1
-#        with:
-#          serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
-#          packageName: com.corekit.app
-#          releaseFile: build/app/outputs/bundle/release/app-release.aab
-#          track: internal
-#          status: completed
