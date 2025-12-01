@@ -27,6 +27,10 @@ jobs:
       - name: Build APK
         run: flutter build apk --release
 
+      # Install Android SDK Build Tools 34 manually
+      - name: Install Android Build Tools 34
+        run: yes | sudo ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager "build-tools;34.0.0"
+
       # Sign APK
       - name: Sign APK
         uses: r0adkll/sign-android-release@v1
