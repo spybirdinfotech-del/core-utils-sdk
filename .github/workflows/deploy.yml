@@ -81,10 +81,28 @@ jobs:
       - name: Install Firebase CLI
         run: curl -sL https://firebase.tools | bash
 
+      - name: Debug IPA Location
+        run: |
+          echo "Current directory: $(pwd)"
+          echo "Build directory contents:"
+          ls -la build/ios/ || echo "No build/ios directory found"
+          echo "IPA directory contents:"
+          ls -la build/ios/ipa/ || echo "No IPA directory found"
+
       - name: Upload IPA to Firebase App Distribution
         run: |
-          FILE=$(ls build/ios/ipa/*.ipa | head -n 1)
-          echo "Uploading IPA: $FILE"
-          firebase appdistribution:distribute "$FILE" \
+          # Find the first IPA file in the build directory
+          IPA_FILE=$(find build/ios -name "*.ipa" | head -n 1)
+          
+          if [ -z "$IPA_FILE" ]; then
+            echo "::error::No IPA file found in build/ios directory"
+            exit 1
+          fi
+          
+          echo "Found IPA file: $IPA_FILE"
+          echo "Uploading IPA to Firebase App Distribution..."
+          
+          firebase appdistribution:distribute "$IPA_FILE" \
             --app 1:222652963588:ios:6270dd3b290c7aa9454e51 \
-            --token "${{ secrets.FIREBASE_TOKEN }}"
+            --token "${{ secrets.FIREBASE_TOKEN }}" \
+            --debug

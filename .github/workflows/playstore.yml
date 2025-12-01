@@ -112,15 +112,25 @@ jobs:
           name: ios-app-release
           path: build/ios/ipa/*.ipa
 
-      # Upload to TestFlight using App Store Connect
+      # Install fastlane for TestFlight upload
+      - name: Install fastlane
+        if: ${{ github.event.inputs.publish == 'true' }}
+        run: |
+          sudo gem install fastlane -NV
+          sudo gem install fastlane-plugin-firebase_app_distribution
+
+      # Upload to TestFlight using fastlane
       - name: Upload to TestFlight
         if: ${{ github.event.inputs.publish == 'true' }}
-        uses: apple-actions/upload-testflight@v2
-        with:
-          app-path: build/ios/ipa/*.ipa
-          api-key-id: ${{ secrets.APP_STORE_KEY_ID }}
-          api-issuer-id: ${{ secrets.APP_STORE_ISSUER_ID }}
-          api-private-key: ${{ secrets.APP_STORE_PRIVATE_KEY }}
+        env:
+          FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: ${{ secrets.APP_SPECIFIC_PASSWORD }}
+          FASTLANE_USER: ${{ secrets.APPLE_ID }}
+          FASTLANE_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          FASTLANE_SKIP_UPDATE_CHECK: true
+          FASTLANE_SKIP_2FA_UPGRADE: true
+        run: |
+          cd ios
+          fastlane beta
 
       - name: Dry Run Message
         if: ${{ github.event.inputs.publish != 'true' }}
