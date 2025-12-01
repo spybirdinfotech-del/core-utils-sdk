@@ -36,7 +36,7 @@ jobs:
       # 5. Optional: Upload APK as artifact for dry-run/manual testing
       - name: Upload APK artifact (for manual testing)
         if: ${{ github.event.inputs.publish != 'true' }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: app-release-apk
           path: build/app/outputs/flutter-apk/app-release.apk
