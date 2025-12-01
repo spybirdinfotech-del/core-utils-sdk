@@ -33,14 +33,16 @@ jobs:
 
       # Sign APK
       - name: Sign APK
-        uses: r0adkll/sign-android-release@v1.1.0
+        uses: r0adkll/sign-android-release@v1  # <-- Use @v1
+        id: sign_app # Add an ID to reference outputs if needed later
         with:
           releaseDirectory: build/app/outputs/flutter-apk
           signingKeyBase64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           alias: ${{ secrets.ANDROID_KEYSTORE_ALIAS }}
           keyStorePassword: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           keyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
-          buildToolsVersion: "34.0.0"
+        env:
+          BUILD_TOOLS_VERSION: "34.0.0" # <-- Specify build tools version here
 
       # Upload to Google Play
       - name: Upload to Play Store
