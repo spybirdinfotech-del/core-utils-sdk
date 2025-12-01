@@ -40,6 +40,25 @@ jobs:
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
+      # 10. Build iOS IPA (No Codesign)
+      - name: Build iOS for CI
+        run: flutter build ipa --release --no-codesign
+
+      # 11. Upload iOS Build Artifact
+      - name: Upload iOS Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build
+          path: build/ios/ipa/Runner.ipa
+
+      # 12. Upload iOS IPA to Firebase App Distribution
+      - name: Upload iOS IPA
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+          appId: 1:222652963588:ios:6270dd3b290c7aa9454e51
+          token: ${{ secrets.FIREBASE_TOKEN }}
+          file: build/ios/ipa/Runner.ipa
+
 #      # 6. Build Android
 #      - name: Build Android APK
 #        run: flutter build apk --release
