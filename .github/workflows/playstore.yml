@@ -86,7 +86,7 @@ jobs:
   # ---------------------------------------------------------
   ios_build:
     runs-on: macos-latest
-    needs: android_build  # optional dependency
+    needs: build_playstore
 
     steps:
       - name: Checkout code
