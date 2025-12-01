@@ -43,13 +43,14 @@ jobs:
   # JOB 2 — IOS IPA BUILD + UPLOAD (RUNS ON macOS)
   # ---------------------------------------------------------
   ios_build:
+    needs: web_deploy
     runs-on: macos-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Flutter
+      - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
@@ -57,13 +58,13 @@ jobs:
       - name: Flutter pub get
         run: flutter pub get
 
-      - name: Install CocoaPods
-        run: sudo gem install cocoapods
+      - name: Verify CocoaPods
+        run: pod --version
 
-      - name: Pod install
+      - name: Install Pods
         run: |
           cd ios
-          pod install
+          pod install --repo-update
 
       - name: Build IPA
         run: |
@@ -81,6 +82,9 @@ jobs:
           fi
           echo "IPA found at $IPA_FILE"
           echo "ipa_path=$IPA_FILE" >> $GITHUB_OUTPUT
+
+      - name: Install Firebase CLI
+        run: curl -sL https://firebase.tools | bash
 
       - name: Upload IPA to Firebase App Distribution
         run: |
