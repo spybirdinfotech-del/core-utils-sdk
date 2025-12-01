@@ -33,7 +33,7 @@ jobs:
 
       # Sign APK
       - name: Sign APK
-        uses: r0adkll/sign-android-release@v1
+        uses: r0adkll/sign-android-release@v1.1.0
         with:
           releaseDirectory: build/app/outputs/flutter-apk
           signingKeyBase64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
