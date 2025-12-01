@@ -1,6 +1,12 @@
 name: Android Play Store Build & Upload
 
 on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: 'true to upload to Play Store'
+        required: false
+        default: 'false'
   push:
     branches: [ main ]
 
@@ -27,6 +33,14 @@ jobs:
       - name: Build APK
         run: flutter build apk --release
 
+      # 5. Optional: Upload APK as artifact for dry-run/manual testing
+      - name: Upload APK artifact (for manual testing)
+        if: ${{ github.event.inputs.publish != 'true' }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: app-release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+
       # Install Android SDK Build Tools 34 manually
       - name: Install Android Build Tools 34
         run: yes | sudo ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager "build-tools;34.0.0"
@@ -38,10 +52,10 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
 
-      # Sign APK
+      # 8. Sign APK (only if publish is true)
       - name: Sign APK
-        uses: r0adkll/sign-android-release@v1  # <-- Use @v1
-        id: sign_app # Add an ID to reference outputs if needed later
+        if: ${{ github.event.inputs.publish == 'true' }}
+        uses: r0adkll/sign-android-release@v1
         with:
           releaseDirectory: build/app/outputs/flutter-apk
           signingKeyBase64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
@@ -49,13 +63,20 @@ jobs:
           keyStorePassword: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           keyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
         env:
-          BUILD_TOOLS_VERSION: "34.0.0" # <-- Specify build tools version here
+          BUILD_TOOLS_VERSION: "34.0.0"
 
-      # Upload to Google Play
+      # 9. Upload to Google Play (only if publish is true)
       - name: Upload to Play Store
+        if: ${{ github.event.inputs.publish == 'true' }}
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJson: ${{ secrets.GOOGLE_PLAY_JSON }}
           packageName: com.corekit.app
           releaseFile: build/app/outputs/flutter-apk/app-release-signed.apk
           track: internal
+
+      # 10. Dry-run message
+      - name: Dry-run message
+        if: ${{ github.event.inputs.publish != 'true' }}
+        run:
+         echo "Dry run complete: APK built and uploaded as artifact, signing & Play Store upload skipped."
