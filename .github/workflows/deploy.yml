@@ -45,8 +45,6 @@ jobs:
   ios_build:
     needs: web_deploy
     runs-on: macos-latest
-    env:
-      FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
     steps:
       - name: Checkout repository
@@ -57,32 +55,36 @@ jobs:
         with:
           channel: stable
 
-      - name: Flutter Pub Get
+      - name: Pub get
         run: flutter pub get
 
       - name: Install CocoaPods
         run: sudo gem install cocoapods
 
-      - name: Install iOS Pods
+      - name: Install Pods
         run: |
           cd ios
           pod install
 
       - name: Build IPA (No Code Sign)
-        run: flutter build ipa --release --no-codesign
+        run: |
+          flutter build ipa --release --no-codesign
+          echo "----- IPA Directory -----"
+          ls -R build/ios/ipa || echo "IPA not found"
 
       - name: Upload IPA Artifact
         uses: actions/upload-artifact@v4
         with:
           name: ios-build
-          path: build/ios/ipa/Runner.ipa
+          path: build/ios/ipa/*.ipa
 
-      # FIX: Use CLI for upload
       - name: Install Firebase CLI
         run: curl -sL https://firebase.tools | bash
 
       - name: Upload IPA to Firebase App Distribution
         run: |
-          firebase appdistribution:distribute build/ios/ipa/Runner.ipa \
+          FILE=$(ls build/ios/ipa/*.ipa | head -n 1)
+          echo "Uploading IPA: $FILE"
+          firebase appdistribution:distribute "$FILE" \
             --app 1:222652963588:ios:6270dd3b290c7aa9454e51 \
             --token "${{ secrets.FIREBASE_TOKEN }}"
