@@ -10,7 +10,8 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
-      FIREBASE_PROJECT_ID: corekit-sdk
+      FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+      FIREBASE_PROJECT_ID: corekit-sdk-99a43
 
     steps:
       # 1. Checkout Code
