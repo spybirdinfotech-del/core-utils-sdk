@@ -41,8 +41,8 @@ jobs:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
       # 10. Build iOS IPA (No Codesign)
-      - name: Build iOS for CI
-        run: flutter build ipa --export-options-plist=ios/ExportOptions.plist --flavor ${{ github.event.inputs.flavor }} --target lib/main_${{ github.event.inputs.flavor }}.dart
+      - name: Build iOS IPA (No Codesign)
+        run: flutter build ipa --no-codesign --flavor ${{ github.event.inputs.flavor }} --target lib/main_${{ github.event.inputs.flavor }}.dart
 
       # 11. Upload iOS Build Artifact
       - name: Upload iOS Artifact
