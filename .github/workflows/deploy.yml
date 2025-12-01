@@ -40,64 +40,65 @@ jobs:
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
-      # 6. Build Android
-      - name: Build Android APK
-        run: flutter build apk --release
-
-      - name: Build Android AAB
-        run: flutter build appbundle --release
-
-      # 7. Upload Android Build Artifacts
-      - name: Upload Android Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-build
-          path: build/app/outputs/
-
-      # 8. Upload APK to Firebase App Distribution
-      - name: Upload Android APK to Firebase App Distribution
-        uses: wzieba/Firebase-Distribution-Github-Action@v1
-        with:
-          appId: 1:222652963588:android:df44307667e8a5b3454e51
-          token: ${{ secrets.FIREBASE_TOKEN }}
-          file: build/app/outputs/flutter-apk/app-release.apk
-
-      # 9. Upload AAB to Google Play Store
-      - name: Upload AAB to Google Play Store
-        if: github.event_name == 'push'
-        uses: r0adkll/upload-google-play@v1
-        with:
-          serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
-          packageName: com.corekit.app
-          releaseFile: build/app/outputs/bundle/release/app-release.aab
-          track: internal
-
-      # 10. Build iOS IPA (No Codesign)
-      - name: Build iOS for CI
-        run: flutter build ipa --release --no-codesign
-
-      # 11. Upload iOS Build Artifact
-      - name: Upload iOS Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios-build
-          path: build/ios/ipa/Runner.ipa
-
-      # 12. Upload iOS IPA to Firebase App Distribution
-      - name: Upload iOS IPA
-        uses: wzieba/Firebase-Distribution-Github-Action@v1
-        with:
-          appId: 1:222652963588:ios:6270dd3b290c7aa9454e51
-          token: ${{ secrets.FIREBASE_TOKEN }}
-          file: build/ios/ipa/Runner.ipa
-
-      # 13. Build Windows (Optional)
-      - name: Build Windows
-        run: flutter build windows --release
-
-      # 14. Upload Windows Build Artifact
-      - name: Upload Windows Build Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-build
-          path: build/windows/runner/Release
+#      # 6. Build Android
+#      - name: Build Android APK
+#        run: flutter build apk --release
+#
+#      - name: Build Android AAB
+#        run: flutter build appbundle --release
+#
+#      # 7. Upload Android Build Artifacts
+#      - name: Upload Android Artifact
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: android-build
+#          path: build/app/outputs/
+#
+#      # 8. Upload APK to Firebase App Distribution
+#      - name: Upload Android APK to Firebase App Distribution
+#        uses: wzieba/Firebase-Distribution-Github-Action@v1
+#        with:
+#          appId: 1:222652963588:android:df44307667e8a5b3454e51
+#          token: ${{ secrets.FIREBASE_TOKEN }}
+#          file: build/app/outputs/flutter-apk/app-release.apk
+#
+#      # 9. Upload AAB to Google Play Store
+#      - name: Upload AAB to Google Play Store
+#        if: github.event_name == 'push'
+#        uses: r0adkll/upload-google-play@v1
+#        with:
+#          serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
+#          packageName: com.corekit.app
+#          releaseFile: build/app/outputs/bundle/release/app-release.aab
+#          track: internal
+#          status: completed
+#
+#      # 10. Build iOS IPA (No Codesign)
+#      - name: Build iOS for CI
+#        run: flutter build ipa --release --no-codesign
+#
+#      # 11. Upload iOS Build Artifact
+#      - name: Upload iOS Artifact
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: ios-build
+#          path: build/ios/ipa/Runner.ipa
+#
+#      # 12. Upload iOS IPA to Firebase App Distribution
+#      - name: Upload iOS IPA
+#        uses: wzieba/Firebase-Distribution-Github-Action@v1
+#        with:
+#          appId: 1:222652963588:ios:6270dd3b290c7aa9454e51
+#          token: ${{ secrets.FIREBASE_TOKEN }}
+#          file: build/ios/ipa/Runner.ipa
+#
+#      # 13. Build Windows (Optional)
+#      - name: Build Windows
+#        run: flutter build windows --release
+#
+#      # 14. Upload Windows Build Artifact
+#      - name: Upload Windows Build Artifact
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: windows-build
+#          path: build/windows/runner/Release
