@@ -1,21 +1,22 @@
-name: Build & Distribute (firebase All Flavors)
+name: Build & Distribute (Firebase All Flavors)
 
 on:
+  # Allows manual triggering from the GitHub Actions UI
   workflow_dispatch:
+  # Triggers on pushes to the main branch
   push:
     branches:
       - main
 
 jobs:
-
   # --------------------------------------------------
-  # ANDROID BUILD (dev / staging / production)
+  # ANDROID BUILD & DISTRIBUTION (dev / staging / production)
   # --------------------------------------------------
   build_android:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 90
 
-    # RUN FLAVORS ONE-BY-ONE → NO CANCELLATION
+    # RUN FLAVORS ONE-BY-ONE → Prevents concurrent access to shared resources
     strategy:
       max-parallel: 1
       matrix:
@@ -26,35 +27,36 @@ jobs:
       GRADLE_OPTS: "-Dorg.gradle.vfs.watch=false"
 
     steps:
-      - uses: actions/checkout@v4
+      - name: ⚙️ Checkout code
+        uses: actions/checkout@v4
 
-      - uses: subosito/flutter-action@v2
+      - name: 🐦 Setup Flutter
+        uses: subosito/flutter-action@v2
         with:
+          # Use your desired Flutter version
           flutter-version: '3.35.7'
 
-      - name: Install dependencies
+      - name: 📦 Install dependencies
         run: flutter pub get
 
-      # ---- ANDROID APK ----
-      - name: Build APK (${{ matrix.flavor }})
+      # ---- ANDROID APK BUILD ----
+      - name: 🏗️ Build APK (${{ matrix.flavor }})
         run: |
+          flutter clean
+          # Builds the APK using the specific flavor and in release mode
           flutter build apk --flavor ${{ matrix.flavor }} --release --no-tree-shake-icons
-        timeout-minutes: 30
+        timeout-minutes: 20
 
-      # ---- ANDROID AAB ----
-      - name: Build AAB (${{ matrix.flavor }})
-        run: |
-          flutter build appbundle --flavor ${{ matrix.flavor }} --release --no-tree-shake-icons
-        timeout-minutes: 30
-
-      - name: Install Firebase Tools
+      - name: 🔥 Install Firebase Tools
         run: npm install -g firebase-tools
 
       # ---- UPLOAD APK TO FIREBASE ----
-      - name: Upload APK to Firebase App Distribution (${{ matrix.flavor }})
+      - name: ⬆️ Upload APK to Firebase App Distribution (${{ matrix.flavor }})
         env:
+          # Token is needed for Firebase CLI login
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: |
+          # 1. Map flavor to the corresponding Firebase App ID secret
           if [ "${{ matrix.flavor }}" = "dev" ]; then
             APP_ID="${{ secrets.FIREBASE_APP_ID_ANDROID_DEV }}"
           elif [ "${{ matrix.flavor }}" = "staging" ]; then
@@ -63,63 +65,84 @@ jobs:
             APP_ID="${{ secrets.FIREBASE_APP_ID_ANDROID_PRODUCTION }}"
           fi
           
+          # 2. FAIL if the secret is missing (which caused your original error)
           if [ -z "$APP_ID" ]; then
-            echo "ERROR: Firebase App ID is empty for flavor ${{ matrix.flavor }}"
+            echo "::error::ERROR: Firebase App ID is empty for flavor ${{ matrix.flavor }}. Check your GitHub Secrets."
             exit 1
           fi
           
-          firebase appdistribution:distribute build/app/outputs/flutter-apk/app-${{ matrix.flavor }}-release.apk \
+          # 3. Distribute the APK
+          # The resulting file path will be 'build/app/outputs/flutter-apk/app-<flavor>-release.apk'
+          APK_PATH="build/app/outputs/flutter-apk/app-${{ matrix.flavor }}-release.apk"
+          
+          firebase appdistribution:distribute "$APK_PATH" \
             --app "$APP_ID" \
             --release-notes "${{ matrix.flavor }} CI build" \
             --token "$FIREBASE_TOKEN"
 
-      - name: Upload AAB as Artifact (${{ matrix.flavor }})
+      - name: 💾 Upload APK as Artifact (${{ matrix.flavor }})
         uses: actions/upload-artifact@v4
         with:
-          name: android-${{ matrix.flavor }}-build
-          path: build/app/outputs/bundle/${{ matrix.flavor }}Release/app-${{ matrix.flavor }}-release.aab
+          name: android-${{ matrix.flavor }}-apk
+          path: build/app/outputs/flutter-apk/app-${{ matrix.flavor }}-release.apk
 
   # --------------------------------------------------
-  # iOS BUILD (dev / staging / production)
+  # iOS BUILD & DISTRIBUTION (dev / staging / production)
   # --------------------------------------------------
   build_ios:
     runs-on: macos-latest
+    timeout-minutes: 90
+    needs: build_android # Wait for Android to finish before starting iOS (optional)
+
+    # RUN FLAVORS ONE-BY-ONE
     strategy:
+      max-parallel: 1
       matrix:
         flavor: [dev, staging, production]
-    env:
-      FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+
+    # iOS requires a P12 certificate and provisioning profile for codesigning.
+    # We will build an *unsigned* IPA and distribute it.
 
     steps:
-      - name: Checkout code
+      - name: ⚙️ Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Flutter
+      - name: 🐦 Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.35.7'
 
-      - name: Install dependencies
+      - name: 📦 Install dependencies
         run: flutter pub get
 
-      - name: Build iOS app (no codesign) (${{ matrix.flavor }})
-        run: flutter build ios --flavor ${{ matrix.flavor }} --release --no-codesign
-
-      - name: Create unsigned IPA (${{ matrix.flavor }})
+      # ---- iOS BUILD (No Codesign) ----
+      - name: 🏗️ Build iOS app (no codesign) (${{ matrix.flavor }})
+        # Note: You must configure your Xcode project for codesign/flavors beforehand
         run: |
+          flutter clean
+          flutter build ios --flavor ${{ matrix.flavor }} --release --no-codesign
+        timeout-minutes: 20
+
+      # ---- CREATE UNSIGNED IPA ----
+      - name: 📝 Create unsigned IPA (${{ matrix.flavor }})
+        run: |
+          # Create the Payload directory structure required for an IPA
           mkdir -p build/ios/ipa/Payload
+          # Copy the built Runner.app into the Payload directory
           cp -r build/ios/iphoneos/Runner.app build/ios/ipa/Payload/
           cd build/ios/ipa
+          # Zip the Payload directory to create the IPA file
           zip -r Runner-${{ matrix.flavor }}.ipa Payload
 
-      - name: Install Firebase Tools
+      - name: 🔥 Install Firebase Tools
         run: npm install -g firebase-tools
 
-      - name: Upload IPA to Firebase App Distribution (${{ matrix.flavor }})
+      # ---- UPLOAD IPA TO FIREBASE ----
+      - name: ⬆️ Upload IPA to Firebase App Distribution (${{ matrix.flavor }})
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: |
-          # Map flavor → Firebase App ID
+          # 1. Map flavor to the corresponding Firebase App ID secret
           if [ "${{ matrix.flavor }}" = "dev" ]; then
             APP_ID="${{ secrets.FIREBASE_APP_ID_IOS_DEV }}"
           elif [ "${{ matrix.flavor }}" = "staging" ]; then
@@ -128,19 +151,22 @@ jobs:
             APP_ID="${{ secrets.FIREBASE_APP_ID_IOS_PRODUCTION }}"
           fi
 
-          # Fail if secret is missing
+          # 2. FAIL if the secret is missing
           if [ -z "$APP_ID" ]; then
-            echo "ERROR: Firebase App ID is empty for flavor ${{ matrix.flavor }}"
+            echo "::error::ERROR: Firebase App ID is empty for flavor ${{ matrix.flavor }}. Check your GitHub Secrets."
             exit 1
           fi
 
-          firebase appdistribution:distribute build/ios/ipa/Runner-${{ matrix.flavor }}.ipa \
+          # 3. Distribute the IPA
+          IPA_PATH="build/ios/ipa/Runner-${{ matrix.flavor }}.ipa"
+          
+          firebase appdistribution:distribute "$IPA_PATH" \
             --app "$APP_ID" \
             --release-notes "${{ matrix.flavor }} CI build" \
             --token "$FIREBASE_TOKEN"
 
-      - name: Upload IPA as artifact (${{ matrix.flavor }})
+      - name: 💾 Upload IPA as artifact (${{ matrix.flavor }})
         uses: actions/upload-artifact@v4
         with:
-          name: ios-${{ matrix.flavor }}-build
+          name: ios-${{ matrix.flavor }}-ipa
           path: build/ios/ipa/Runner-${{ matrix.flavor }}.ipa
