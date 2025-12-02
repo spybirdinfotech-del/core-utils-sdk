@@ -56,7 +56,7 @@ jobs:
       # BUILD IPA
       - name: Build unsigned IPA (${{ matrix.flavor }})
         run: |
-          flutter build ios --release --no-codesign --flavor ${{ matrix.flavor }}
+          flutter build ios --release --no-codesign --dart-define=FLAVOR=${{ matrix.flavor }}
           mkdir -p build/ios/ipa/${{ matrix.flavor }}/Payload
           cp -r build/ios/iphoneos/Runner.app build/ios/ipa/${{ matrix.flavor }}/Payload/
           cd build/ios/ipa/${{ matrix.flavor }}

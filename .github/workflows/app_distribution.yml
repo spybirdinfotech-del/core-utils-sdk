@@ -1,4 +1,4 @@
-name: Build & Distribute (All Flavors)
+name: Build & Distribute (firebase All Flavors)
 
 on:
   workflow_dispatch:
@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        flavor: [dev, staging, production]
+        flavor: [ dev, staging, production ]
 
     steps:
       - name: Checkout code
@@ -32,12 +32,14 @@ jobs:
       - name: Build APK (${{ matrix.flavor }})
         run: |
           export GRADLE_WATCH_FREQUENCY=0
-          flutter build apk --flavor ${{ matrix.flavor }} --release
+          flutter build apk --flavor ${{ matrix.flavor }} --release --no-tree-shake-icons
+        timeout-minutes: 30
 
       - name: Build AAB (${{ matrix.flavor }})
         run: |
           export GRADLE_WATCH_FREQUENCY=0
-          flutter build appbundle --flavor ${{ matrix.flavor }} --release
+          flutter build appbundle --flavor ${{ matrix.flavor }} --release --no-tree-shake-icons
+        timeout-minutes: 30
 
       - name: Install Firebase Tools
         run: npm install -g firebase-tools
@@ -46,7 +48,6 @@ jobs:
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: |
-          # Map flavor → Firebase App ID
           if [ "${{ matrix.flavor }}" = "dev" ]; then
             APP_ID="${{ secrets.FIREBASE_APP_ID_ANDROID_DEV }}"
           elif [ "${{ matrix.flavor }}" = "staging" ]; then
@@ -54,13 +55,10 @@ jobs:
           else
             APP_ID="${{ secrets.FIREBASE_APP_ID_ANDROID_PRODUCTION }}"
           fi
-
-          # Fail if secret is missing
           if [ -z "$APP_ID" ]; then
-            echo "ERROR: Firebase App ID is empty for flavor ${{ matrix.flavor }}"
+            echo "ERROR: Firebase App ID is empty"
             exit 1
           fi
-
           firebase appdistribution:distribute build/app/outputs/flutter-apk/app-${{ matrix.flavor }}-release.apk \
             --app "$APP_ID" \
             --release-notes "${{ matrix.flavor }} CI build" \
