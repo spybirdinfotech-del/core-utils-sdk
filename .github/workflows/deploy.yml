@@ -58,10 +58,22 @@ jobs:
       - name: Flutter pub get
         run: flutter pub get
 
-      - name: Verify CocoaPods
-        run: pod --version
+      # --- Install Certificate + Provisioning Profile ---
+      - name: Install certificate
+        run: |
+          echo "${{ secrets.IOS_P12 }}" | base64 --decode > certificate.p12
+          security create-keychain -p "" build.keychain
+          security import certificate.p12 -k ~/Library/Keychains/build.keychain -P "${{ secrets.IOS_P12_PASSWORD }}" -T /usr/bin/codesign
+          security list-keychains -d user -s ~/Library/Keychains/build.keychain
+          security unlock-keychain -p "" ~/Library/Keychains/build.keychain
+          security set-key-partition-list -S apple-tool:,apple: -s -k "" ~/Library/Keychains/build.keychain
 
-      - name: Install Pods
+      - name: Install provisioning profile
+        run: |
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          echo "${{ secrets.IOS_PROVISION }}" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/adhoc.mobileprovision
+
+      - name: Install CocoaPods
         run: |
           cd ios
           pod install --repo-update
@@ -77,10 +89,9 @@ jobs:
         run: |
           IPA_FILE=$(find build/ios/ipa -name "*.ipa" | head -n 1)
           if [ -z "$IPA_FILE" ]; then
-            echo "ERROR: IPA file not found!"
+            echo "ERROR: IPA not found!"
             exit 1
           fi
-          echo "IPA found at $IPA_FILE"
           echo "ipa_path=$IPA_FILE" >> $GITHUB_OUTPUT
 
       - name: Install Firebase CLI
@@ -88,9 +99,8 @@ jobs:
 
       - name: Upload IPA to Firebase App Distribution
         run: |
-          echo "Uploading IPA: ${{ steps.find_ipa.outputs.ipa_path }}"
           firebase appdistribution:distribute "${{ steps.find_ipa.outputs.ipa_path }}" \
             --app 1:222652963588:ios:6270dd3b290c7aa9454e51 \
             --groups "testers" \
-            --release-notes "Automated CI build" \
+            --release-notes "CI build" \
             --token "${{ secrets.FIREBASE_TOKEN }}"
