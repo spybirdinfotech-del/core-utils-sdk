@@ -76,10 +76,10 @@ jobs:
       # 8️⃣ Upload IPA to Firebase App Distribution
       - name: Upload IPA to Firebase
         run: |
+          ls build/ios/ipa 
           firebase appdistribution:distribute build/ios/ipa/*.ipa \
-          --app $FIREBASE_APP_ID \
-          --groups "testers" \
-          --token $FIREBASE_TOKEN
+          --app 1:222652963588:ios:6270dd3b290c7aa9454e51  \
+          --token ${{ secrets.FIREBASE_TOKEN }}
 
       # 9️⃣ Upload IPA as artifact (optional)
       - name: Upload IPA artifact
