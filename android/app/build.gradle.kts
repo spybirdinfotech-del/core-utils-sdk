@@ -59,6 +59,7 @@ android {
             dimension = "mode"
             // no suffix for production
         }
+    }
 }
 
 flutter {
