@@ -16,8 +16,14 @@ jobs:
 
     strategy:
       matrix:
-        platform: [android, web]
-        flavor: [dev, staging, production]
+        include:
+          - { platform: android, flavor: dev }
+          - { platform: android, flavor: staging }
+          - { platform: android, flavor: production }
+
+          - { platform: web, flavor: dev }
+          - { platform: web, flavor: staging }
+          - { platform: web, flavor: production }
 
     steps:
       - name: Checkout repository
@@ -31,7 +37,7 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Analyze (warnings allowed)
+      - name: Analyze
         run: flutter analyze || true
 
       - name: Build ${{ matrix.platform }} - ${{ matrix.flavor }}
@@ -39,6 +45,7 @@ jobs:
           if [ "${{ matrix.platform }}" = "android" ]; then
             flutter build apk --flavor ${{ matrix.flavor }} --release
             flutter build appbundle --flavor ${{ matrix.flavor }} --release
+          
           elif [ "${{ matrix.platform }}" = "web" ]; then
             flutter build web --release --dart-define=FLAVOR=${{ matrix.flavor }}
           fi
