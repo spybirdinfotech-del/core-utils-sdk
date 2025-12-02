@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "222652963588",
+    "project_id": "corekit-sdk-99a43",
+    "storage_bucket": "corekit-sdk-99a43.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:222652963588:android:df44307667e8a5b3454e51",
+        "android_client_info": {
+          "package_name": "com.corekit.app.dev"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "222652963588-4mr4aekhkrafr6663t8ktoj1q8ooalql.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.corekit.app.dev",
+            "certificate_hash": "2bcb53c8382a98b2b844c6c735240882b00bc550"
+          }
+        },
+        {
+          "client_id": "222652963588-mhq6vdrd7gm9ncki8qf0bqdv38pp12o0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBEPk8GC8-HiXyOMt9uRgH7S-VPvQ733-w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "222652963588-mhq6vdrd7gm9ncki8qf0bqdv38pp12o0.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "222652963588-0trk64n88codk8kpbistgdldoqmiguff.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.corekit.app"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
