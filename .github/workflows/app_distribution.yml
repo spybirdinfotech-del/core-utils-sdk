@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        flavor: [ dev, staging, production ]
+        flavor: [dev, staging, production]
 
     steps:
       - name: Checkout code
@@ -46,6 +46,7 @@ jobs:
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: |
+          # Map flavor → Firebase App ID
           if [ "${{ matrix.flavor }}" = "dev" ]; then
             APP_ID="${{ secrets.FIREBASE_APP_ID_ANDROID_DEV }}"
           elif [ "${{ matrix.flavor }}" = "staging" ]; then
@@ -53,7 +54,13 @@ jobs:
           else
             APP_ID="${{ secrets.FIREBASE_APP_ID_ANDROID_PRODUCTION }}"
           fi
-          
+
+          # Fail if secret is missing
+          if [ -z "$APP_ID" ]; then
+            echo "ERROR: Firebase App ID is empty for flavor ${{ matrix.flavor }}"
+            exit 1
+          fi
+
           firebase appdistribution:distribute build/app/outputs/flutter-apk/app-${{ matrix.flavor }}-release.apk \
             --app "$APP_ID" \
             --release-notes "${{ matrix.flavor }} CI build" \
@@ -73,6 +80,8 @@ jobs:
     strategy:
       matrix:
         flavor: [dev, staging, production]
+    env:
+      FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
     steps:
       - name: Checkout code
@@ -103,13 +112,19 @@ jobs:
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: |
-          # Map flavor → Firebase app ID
+          # Map flavor → Firebase App ID
           if [ "${{ matrix.flavor }}" = "dev" ]; then
             APP_ID="${{ secrets.FIREBASE_APP_ID_IOS_DEV }}"
           elif [ "${{ matrix.flavor }}" = "staging" ]; then
             APP_ID="${{ secrets.FIREBASE_APP_ID_IOS_STAGING }}"
           else
             APP_ID="${{ secrets.FIREBASE_APP_ID_IOS_PRODUCTION }}"
+          fi
+
+          # Fail if secret is missing
+          if [ -z "$APP_ID" ]; then
+            echo "ERROR: Firebase App ID is empty for flavor ${{ matrix.flavor }}"
+            exit 1
           fi
 
           firebase appdistribution:distribute build/ios/ipa/Runner-${{ matrix.flavor }}.ipa \
