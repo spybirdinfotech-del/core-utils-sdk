@@ -47,37 +47,41 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@v2
         with:
           channel: stable
 
-      - name: Flutter pub get
-        run: flutter pub get
+      - run: flutter pub get
 
-      # --- Install Certificate + Provisioning Profile ---
+      # CERTIFICATE
       - name: Install certificate
         run: |
           echo "${{ secrets.IOS_P12 }}" | base64 --decode > certificate.p12
-          security create-keychain -p "" build.keychain
-          security import certificate.p12 -k ~/Library/Keychains/build.keychain -P "${{ secrets.IOS_P12_PASSWORD }}" -T /usr/bin/codesign
-          security list-keychains -d user -s ~/Library/Keychains/build.keychain
-          security unlock-keychain -p "" ~/Library/Keychains/build.keychain
-          security set-key-partition-list -S apple-tool:,apple: -s -k "" ~/Library/Keychains/build.keychain
+          
+          # Create and configure keychain
+          security create-keychain -p "github" build.keychain
+          security import certificate.p12 -k build.keychain -P "${{ secrets.IOS_P12_PASSWORD }}" -T /usr/bin/codesign
+          
+          # Use this keychain
+          security list-keychains -d user -s build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "github" build.keychain
+          security set-key-partition-list -S apple-tool:,apple: -s -k "github" build.keychain
 
+      # PROVISIONING PROFILE
       - name: Install provisioning profile
         run: |
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           echo "${{ secrets.IOS_PROVISION }}" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/adhoc.mobileprovision
 
-      - name: Install CocoaPods
-        run: |
+      # COCOAPODS
+      - run: |
           cd ios
           pod install --repo-update
 
+      # BUILD IPA
       - name: Build IPA
         run: |
           flutter build ipa --release --export-method ad-hoc
@@ -88,19 +92,13 @@ jobs:
         id: find_ipa
         run: |
           IPA_FILE=$(find build/ios/ipa -name "*.ipa" | head -n 1)
-          if [ -z "$IPA_FILE" ]; then
-            echo "ERROR: IPA not found!"
-            exit 1
-          fi
           echo "ipa_path=$IPA_FILE" >> $GITHUB_OUTPUT
 
-      - name: Install Firebase CLI
-        run: curl -sL https://firebase.tools | bash
+      - run: curl -sL https://firebase.tools | bash
 
       - name: Upload IPA to Firebase App Distribution
         run: |
           firebase appdistribution:distribute "${{ steps.find_ipa.outputs.ipa_path }}" \
             --app 1:222652963588:ios:6270dd3b290c7aa9454e51 \
-            --groups "testers" \
             --release-notes "CI build" \
             --token "${{ secrets.FIREBASE_TOKEN }}"

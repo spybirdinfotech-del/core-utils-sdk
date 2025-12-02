@@ -84,12 +84,12 @@ jobs:
   # ---------------------------------------------------------
   # iOS JOB (requires Mac)
   # ---------------------------------------------------------
-  ios_build:
+  ios:
     runs-on: macos-latest
-    needs: build_playstore
+    needs: android
 
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v3
 
       - name: Install Flutter
@@ -97,41 +97,33 @@ jobs:
         with:
           channel: stable
 
-      - name: Install dependencies
+      - name: Install Dependencies
         run: flutter pub get
 
-      # iOS build
       - name: Build IPA
         run: flutter build ipa --release --export-options-plist=ios/ExportOptions.plist
 
-       # Upload IPA artifact for manual testing
-      - name: Upload IPA artifact (dry run)
+      - name: Upload IPA Artifact (Dry Run)
         if: ${{ github.event.inputs.publish != 'true' }}
         uses: actions/upload-artifact@v4
         with:
-          name: ios-app-release
+          name: ios-ipa
           path: build/ios/ipa/*.ipa
 
-      # Install fastlane for TestFlight upload
-      - name: Install fastlane
+      - name: Install Fastlane
         if: ${{ github.event.inputs.publish == 'true' }}
-        run: |
-          sudo gem install fastlane -NV
-          sudo gem install fastlane-plugin-firebase_app_distribution
+        run: sudo gem install fastlane -NV
 
-      # Upload to TestFlight using fastlane
       - name: Upload to TestFlight
         if: ${{ github.event.inputs.publish == 'true' }}
         env:
-          FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: ${{ secrets.APP_SPECIFIC_PASSWORD }}
-          FASTLANE_USER: ${{ secrets.APPLE_ID }}
-          FASTLANE_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-          FASTLANE_SKIP_UPDATE_CHECK: true
-          FASTLANE_SKIP_2FA_UPGRADE: true
+          APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          FASTLANE_APPLE_ID: ${{ secrets.APPLE_ID }}
         run: |
           cd ios
           fastlane beta
 
-      - name: Dry Run Message
+      - name: iOS Dry Run Complete
         if: ${{ github.event.inputs.publish != 'true' }}
-        run: echo "iOS dry-run completed."
+        run: echo "iOS dry-run complete."
