@@ -53,14 +53,10 @@ jobs:
             build/web
 
   # ------------------------------------------------------------
-  # WINDOWS BUILD (WINDOWS RUNNER REQUIRED)
+  # WINDOWS BUILD (NO FLAVORS)
   # ------------------------------------------------------------
   build_windows:
     runs-on: windows-latest
-
-    strategy:
-      matrix:
-        flavor: [dev, staging, production]
 
     steps:
       - name: Checkout repository
@@ -77,11 +73,11 @@ jobs:
       - name: Analyze (warnings allowed)
         run: flutter analyze || true
 
-      - name: Build Windows (${{ matrix.flavor }})
-        run: flutter build windows --flavor ${{ matrix.flavor }} --release
+      - name: Build Windows (single build, no flavors)
+        run: flutter build windows --release
 
       - name: Upload Windows Build
         uses: actions/upload-artifact@v4
         with:
-          name: windows-${{ matrix.flavor }}
+          name: windows-build
           path: build/windows/runner/Release

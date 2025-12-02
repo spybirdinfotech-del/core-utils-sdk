@@ -24,7 +24,9 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   NotificationHandler().showNotification(message);
 }
 
-Future<void> main() async {
+String appEnv = "production";  // default
+
+Future<void> main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
 
@@ -207,6 +209,7 @@ Future<void> main() async {
 }
 
 class MyApp extends StatelessWidget {
+
   const MyApp({super.key});
 
   @override
