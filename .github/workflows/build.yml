@@ -8,14 +8,15 @@ on:
 
 jobs:
 
-  build:
+  # ------------------------------------------------------------
+  # ANDROID + WEB BUILDS (UBUNTU)
+  # ------------------------------------------------------------
+  build_unix:
     runs-on: ubuntu-latest
-    env:
-      FIREBASE_PROJECT_ID: corekit-sdk
 
     strategy:
       matrix:
-        platform: [android, web, windows]
+        platform: [android, web]
         flavor: [dev, staging, production]
 
     steps:
@@ -30,31 +31,57 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Run flutter analyze
+      - name: Analyze (warnings allowed)
         run: flutter analyze || true
-
-      - name: Skip Flutter tests
-        run: echo "Tests skipped"
 
       - name: Build ${{ matrix.platform }} - ${{ matrix.flavor }}
         run: |
-          if [ "${{ matrix.platform }}" == "android" ]; then
+          if [ "${{ matrix.platform }}" = "android" ]; then
             flutter build apk --flavor ${{ matrix.flavor }} --release
             flutter build appbundle --flavor ${{ matrix.flavor }} --release
-          elif [ "${{ matrix.platform }}" == "web" ]; then
-            flutter build web --flavor ${{ matrix.flavor }} --release
-          elif [ "${{ matrix.platform }}" == "windows" ] && [[ "$RUNNER_OS" == "Windows" ]]; then
-            flutter build windows --flavor ${{ matrix.flavor }} --release
-          else
-            echo "Skipping build for ${{ matrix.platform }} on this runner"
+          elif [ "${{ matrix.platform }}" = "web" ]; then
+            flutter build web --release --dart-define=FLAVOR=${{ matrix.flavor }}
           fi
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.platform }}-${{ matrix.flavor }}-build
+          name: ${{ matrix.platform }}-${{ matrix.flavor }}
           path: |
-            build/app/outputs/flutter-apk/app-${{ matrix.flavor }}-release.apk
-            build/app/outputs/bundle/release/app-${{ matrix.flavor }}-release.aab
+            build/app/outputs/flutter-apk/*.apk
+            build/app/outputs/bundle/release/*.aab
             build/web
-            build/windows/runner/Release
+
+  # ------------------------------------------------------------
+  # WINDOWS BUILD (WINDOWS RUNNER REQUIRED)
+  # ------------------------------------------------------------
+  build_windows:
+    runs-on: windows-latest
+
+    strategy:
+      matrix:
+        flavor: [dev, staging, production]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.7'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze (warnings allowed)
+        run: flutter analyze || true
+
+      - name: Build Windows (${{ matrix.flavor }})
+        run: flutter build windows --flavor ${{ matrix.flavor }} --release
+
+      - name: Upload Windows Build
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-${{ matrix.flavor }}
+          path: build/windows/runner/Release
