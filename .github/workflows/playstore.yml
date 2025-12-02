@@ -100,8 +100,9 @@ jobs:
       - name: Install Dependencies
         run: flutter pub get
 
-      - name: Build IPA
-        run: flutter build ipa --release --export-options-plist=ios/ExportOptions.plist
+      - name: Build IPA (Dry Run)
+        if: ${{ github.event.inputs.publish != 'true' }}
+        run: flutter build ipa --release
 
       - name: Upload IPA Artifact (Dry Run)
         if: ${{ github.event.inputs.publish != 'true' }}

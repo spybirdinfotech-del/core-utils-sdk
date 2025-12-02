@@ -31,3 +31,59 @@ jobs:
           firebase appdistribution:distribute build/app/outputs/flutter-apk/app-release.apk \
           --app 1:222652963588:android:df44307667e8a5b3454e51  \
           --token ${{ secrets.FIREBASE_TOKEN }}
+
+
+  ios_build_firebase:
+    name: iOS Build & Firebase Upload
+    runs-on: macos-latest
+    env:
+      FIREBASE_PROJECT_ID: corekit-sdk
+      FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}    # iOS App ID from Firebase
+      FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}      # Firebase CLI token
+
+    steps:
+      # 1️⃣ Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2️⃣ Setup Flutter
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.7'
+
+      # 3️⃣ Install dependencies
+      - name: Install dependencies
+        run: flutter pub get
+
+      # 4️⃣ Analyze (optional)
+      - name: Run flutter analyze
+        run: flutter analyze || true
+
+      # 5️⃣ Skip tests (optional)
+      - name: Skip Flutter tests
+        run: echo "Tests skipped"
+
+      # 6️⃣ Build iOS IPA without code signing
+      - name: Build iOS IPA
+        run: |
+          flutter build ipa --release --no-codesign
+
+      # 7️⃣ Install Firebase CLI
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      # 8️⃣ Upload IPA to Firebase App Distribution
+      - name: Upload IPA to Firebase
+        run: |
+          firebase appdistribution:distribute build/ios/ipa/*.ipa \
+          --app $FIREBASE_APP_ID \
+          --groups "testers" \
+          --token $FIREBASE_TOKEN
+
+      # 9️⃣ Upload IPA as artifact (optional)
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build
+          path: build/ios/ipa/*.ipa
