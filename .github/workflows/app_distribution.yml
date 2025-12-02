@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 90
 
-    # RUN FLAVORS ONE-BY-ONE → Prevents concurrent access to shared resources
+    # RUN FLAVORS ONE-BY-ONE
     strategy:
       max-parallel: 1
       matrix:
@@ -27,33 +27,30 @@ jobs:
       GRADLE_OPTS: "-Dorg.gradle.vfs.watch=false"
 
     steps:
-      - name: ⚙️ Checkout code
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: 🐦 Setup Flutter
+      - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          # Use your desired Flutter version
-          flutter-version: '3.35.7'
+          flutter-version: '3.35.7' # Adjust to your desired version
 
-      - name: 📦 Install dependencies
+      - name: Install dependencies
         run: flutter pub get
 
       # ---- ANDROID APK BUILD ----
       - name: 🏗️ Build APK (${{ matrix.flavor }})
         run: |
           flutter clean
-          # Builds the APK using the specific flavor and in release mode
           flutter build apk --flavor ${{ matrix.flavor }} --release --no-tree-shake-icons
         timeout-minutes: 20
 
-      - name: 🔥 Install Firebase Tools
+      - name: Install Firebase Tools
         run: npm install -g firebase-tools
 
       # ---- UPLOAD APK TO FIREBASE ----
-      - name: ⬆️ Upload APK to Firebase App Distribution (${{ matrix.flavor }})
+      - name: Upload APK to Firebase App Distribution (${{ matrix.flavor }})
         env:
-          # Token is needed for Firebase CLI login
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: |
           # 1. Map flavor to the corresponding Firebase App ID secret
@@ -65,14 +62,13 @@ jobs:
             APP_ID="${{ secrets.FIREBASE_APP_ID_ANDROID_PRODUCTION }}"
           fi
           
-          # 2. FAIL if the secret is missing (which caused your original error)
+          # 2. FAIL if the secret is missing (Safety Check)
           if [ -z "$APP_ID" ]; then
             echo "::error::ERROR: Firebase App ID is empty for flavor ${{ matrix.flavor }}. Check your GitHub Secrets."
             exit 1
           fi
           
           # 3. Distribute the APK
-          # The resulting file path will be 'build/app/outputs/flutter-apk/app-<flavor>-release.apk'
           APK_PATH="build/app/outputs/flutter-apk/app-${{ matrix.flavor }}-release.apk"
           
           firebase appdistribution:distribute "$APK_PATH" \
@@ -80,7 +76,7 @@ jobs:
             --release-notes "${{ matrix.flavor }} CI build" \
             --token "$FIREBASE_TOKEN"
 
-      - name: 💾 Upload APK as Artifact (${{ matrix.flavor }})
+      - name: Upload APK as Artifact (${{ matrix.flavor }})
         uses: actions/upload-artifact@v4
         with:
           name: android-${{ matrix.flavor }}-apk
@@ -92,7 +88,7 @@ jobs:
   build_ios:
     runs-on: macos-latest
     timeout-minutes: 90
-    needs: build_android # Wait for Android to finish before starting iOS (optional)
+    needs: build_android # Runs after Android is complete
 
     # RUN FLAVORS ONE-BY-ONE
     strategy:
@@ -100,45 +96,40 @@ jobs:
       matrix:
         flavor: [dev, staging, production]
 
-    # iOS requires a P12 certificate and provisioning profile for codesigning.
-    # We will build an *unsigned* IPA and distribute it.
-
     steps:
-      - name: ⚙️ Checkout code
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: 🐦 Setup Flutter
+      - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.35.7'
 
-      - name: 📦 Install dependencies
+      - name: Install dependencies
         run: flutter pub get
 
       # ---- iOS BUILD (No Codesign) ----
-      - name: 🏗️ Build iOS app (no codesign) (${{ matrix.flavor }})
-        # Note: You must configure your Xcode project for codesign/flavors beforehand
+      - name: Build iOS app (no codesign) (${{ matrix.flavor }})
         run: |
           flutter clean
+          # Builds the iOS app for the platform (iphoneos) without signing
           flutter build ios --flavor ${{ matrix.flavor }} --release --no-codesign
         timeout-minutes: 20
 
       # ---- CREATE UNSIGNED IPA ----
-      - name: 📝 Create unsigned IPA (${{ matrix.flavor }})
+      - name: Create unsigned IPA (${{ matrix.flavor }})
         run: |
-          # Create the Payload directory structure required for an IPA
           mkdir -p build/ios/ipa/Payload
-          # Copy the built Runner.app into the Payload directory
           cp -r build/ios/iphoneos/Runner.app build/ios/ipa/Payload/
           cd build/ios/ipa
-          # Zip the Payload directory to create the IPA file
+          # Zips the payload to create the IPA file
           zip -r Runner-${{ matrix.flavor }}.ipa Payload
 
-      - name: 🔥 Install Firebase Tools
+      - name: Install Firebase Tools
         run: npm install -g firebase-tools
 
       # ---- UPLOAD IPA TO FIREBASE ----
-      - name: ⬆️ Upload IPA to Firebase App Distribution (${{ matrix.flavor }})
+      - name: Upload IPA to Firebase App Distribution (${{ matrix.flavor }})
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: |
@@ -151,7 +142,7 @@ jobs:
             APP_ID="${{ secrets.FIREBASE_APP_ID_IOS_PRODUCTION }}"
           fi
 
-          # 2. FAIL if the secret is missing
+          # 2. FAIL if the secret is missing (Safety Check)
           if [ -z "$APP_ID" ]; then
             echo "::error::ERROR: Firebase App ID is empty for flavor ${{ matrix.flavor }}. Check your GitHub Secrets."
             exit 1
@@ -165,7 +156,7 @@ jobs:
             --release-notes "${{ matrix.flavor }} CI build" \
             --token "$FIREBASE_TOKEN"
 
-      - name: 💾 Upload IPA as artifact (${{ matrix.flavor }})
+      - name: Upload IPA as artifact (${{ matrix.flavor }})
         uses: actions/upload-artifact@v4
         with:
           name: ios-${{ matrix.flavor }}-ipa
