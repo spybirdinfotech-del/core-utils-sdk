@@ -39,6 +39,26 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+
+    flavorDimensions += "mode"
+
+    productFlavors {
+        create("dev") {
+            dimension = "mode"
+            applicationIdSuffix = ".dev"
+            versionNameSuffix = "-dev"
+        }
+
+        create("staging") {
+            dimension = "mode"
+            applicationIdSuffix = ".staging"
+            versionNameSuffix = "-staging"
+        }
+
+        create("production") {
+            dimension = "mode"
+            // no suffix for production
+        }
 }
 
 flutter {

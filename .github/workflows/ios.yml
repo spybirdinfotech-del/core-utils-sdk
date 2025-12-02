@@ -1,16 +1,19 @@
-name: iOS Build
+name: iOS Build (Dev + Staging + Production)
 
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   ios_build:
-    name: iOS Build
+    name: iOS Build All Flavors
     runs-on: macos-latest
+
     strategy:
       matrix:
         flavor: [dev, staging, production]
+
     env:
       FIREBASE_PROJECT_ID: corekit-sdk
 
@@ -23,22 +26,34 @@ jobs:
         with:
           flutter-version: '3.35.7'
 
+      - name: Flutter clean
+        run: flutter clean
+
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Run flutter analyze
+      - name: Flutter analyze
         run: flutter analyze || true
 
-      - name: Skip Flutter tests
+      - name: Skip tests
         run: echo "Tests skipped"
 
-      # Install CocoaPods
-      - name: Install Pods
+      # ✔ Only run pod install for production
+      - name: Install Pods (Only for production)
+        if: matrix.flavor == 'production'
         run: |
+          echo "Cleaning iOS DerivedData"
+          rm -rf ~/Library/Developer/Xcode/DerivedData/*
           cd ios
-          pod install --repo-update
+          pod repo update
+          pod install
 
-      # Build unsigned IPA for each flavor
+      # ✔ For dev & staging — skip pod install (to avoid cancellation)
+      - name: Skip Pods for non-production
+        if: matrix.flavor != 'production'
+        run: echo "Skipping pod install for ${{ matrix.flavor }}"
+
+      # BUILD IPA
       - name: Build unsigned IPA (${{ matrix.flavor }})
         run: |
           flutter build ios --release --no-codesign --flavor ${{ matrix.flavor }}
@@ -47,16 +62,16 @@ jobs:
           cd build/ios/ipa/${{ matrix.flavor }}
           zip -r Runner-${{ matrix.flavor }}.ipa Payload
 
-      # List IPA contents
-      - name: List IPA contents (${{ matrix.flavor }})
+      # LIST IPA FILE
+      - name: List IPA (${{ matrix.flavor }})
         run: ls -lh build/ios/ipa/${{ matrix.flavor }}
 
-      # Upload IPA as GitHub artifact
-      - name: Upload IPA artifact (${{ matrix.flavor }})
+      # UPLOAD IPA AS ARTIFACT
+      - name: Upload IPA Artifact (${{ matrix.flavor }})
         uses: actions/upload-artifact@v4
         with:
           name: ios-ipa-${{ matrix.flavor }}
           path: build/ios/ipa/${{ matrix.flavor }}/Runner-${{ matrix.flavor }}.ipa
 
-      - name: Dry-run complete (${{ matrix.flavor }})
-        run: echo "iOS dry-run complete for ${{ matrix.flavor }}. Signing & TestFlight skipped."
+      - name: Completed (${{ matrix.flavor }})
+        run: echo "Unsigned IPA build completed for ${{ matrix.flavor }}."

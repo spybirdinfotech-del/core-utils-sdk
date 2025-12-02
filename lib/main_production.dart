@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'main.dart' as app;
 
-void main() {
+Future<void> main() async {
   app.appEnv = "production";
-  app.main([]);
+  await app.main([]);
 }
