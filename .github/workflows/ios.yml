@@ -8,6 +8,9 @@ jobs:
   ios_build:
     name: iOS Build
     runs-on: macos-latest
+    strategy:
+      matrix:
+        flavor: [dev, staging, production]
     env:
       FIREBASE_PROJECT_ID: corekit-sdk
 
@@ -20,11 +23,6 @@ jobs:
         with:
           flutter-version: '3.35.7'
 
-      - name: Install Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-
       - name: Install dependencies
         run: flutter pub get
 
@@ -34,11 +32,31 @@ jobs:
       - name: Skip Flutter tests
         run: echo "Tests skipped"
 
-      - name: Build iOS
-        run: flutter build ios --release --no-codesign
+      # Install CocoaPods
+      - name: Install Pods
+        run: |
+          cd ios
+          pod install --repo-update
 
-      - name: Upload IPA artifact
+      # Build unsigned IPA for each flavor
+      - name: Build unsigned IPA (${{ matrix.flavor }})
+        run: |
+          flutter build ios --release --no-codesign --flavor ${{ matrix.flavor }}
+          mkdir -p build/ios/ipa/${{ matrix.flavor }}/Payload
+          cp -r build/ios/iphoneos/Runner.app build/ios/ipa/${{ matrix.flavor }}/Payload/
+          cd build/ios/ipa/${{ matrix.flavor }}
+          zip -r Runner-${{ matrix.flavor }}.ipa Payload
+
+      # List IPA contents
+      - name: List IPA contents (${{ matrix.flavor }})
+        run: ls -lh build/ios/ipa/${{ matrix.flavor }}
+
+      # Upload IPA as GitHub artifact
+      - name: Upload IPA artifact (${{ matrix.flavor }})
         uses: actions/upload-artifact@v4
         with:
-          name: ios-build
-          path: build/ios/iphoneos
+          name: ios-ipa-${{ matrix.flavor }}
+          path: build/ios/ipa/${{ matrix.flavor }}/Runner-${{ matrix.flavor }}.ipa
+
+      - name: Dry-run complete (${{ matrix.flavor }})
+        run: echo "iOS dry-run complete for ${{ matrix.flavor }}. Signing & TestFlight skipped."

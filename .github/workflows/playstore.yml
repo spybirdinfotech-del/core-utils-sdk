@@ -1,4 +1,4 @@
-name: Android Play Store Build & Upload
+name: Build & Distribute (Android + iOS Flavors)
 
 on:
   workflow_dispatch:
@@ -11,8 +11,12 @@ on:
     branches: [ main ]
 
 jobs:
+
   build_playstore:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        flavor: [dev, staging, production]
 
     steps:
       # Checkout project
@@ -25,21 +29,21 @@ jobs:
         with:
           channel: stable
 
-      # Install pub packages
+      # Install dependencies
       - name: Install dependencies
         run: flutter pub get
 
       # Build APK
-      - name: Build APK
-        run: flutter build apk --release
+      - name: Build APK (${{ matrix.flavor }})
+        run: flutter build apk --release --flavor ${{ matrix.flavor }}
 
-      # 5. Optional: Upload APK as artifact for dry-run/manual testing
-      - name: Upload APK artifact (for manual testing)
+      # Upload APK artifact (for dry-run/manual testing)
+      - name: Upload APK artifact (${{ matrix.flavor }})
         if: ${{ github.event.inputs.publish != 'true' }}
         uses: actions/upload-artifact@v4
         with:
-          name: app-release-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: app-release-apk-${{ matrix.flavor }}
+          path: build/app/outputs/flutter-apk/app-${{ matrix.flavor }}-release.apk
 
       # Install Android SDK Build Tools 34 manually
       - name: Install Android Build Tools 34
@@ -52,8 +56,8 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
 
-      # 8. Sign APK (only if publish is true)
-      - name: Sign APK
+      # Sign APK (only if publish is true)
+      - name: Sign APK (${{ matrix.flavor }})
         if: ${{ github.event.inputs.publish == 'true' }}
         uses: r0adkll/sign-android-release@v1
         with:
@@ -65,21 +69,21 @@ jobs:
         env:
           BUILD_TOOLS_VERSION: "34.0.0"
 
-      # 9. Upload to Google Play (only if publish is true)
-      - name: Upload to Play Store
+      # Upload to Google Play (only if publish is true)
+      - name: Upload to Play Store (${{ matrix.flavor }})
         if: ${{ github.event.inputs.publish == 'true' }}
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJson: ${{ secrets.GOOGLE_PLAY_JSON }}
           packageName: com.corekit.app
-          releaseFile: build/app/outputs/flutter-apk/app-release-signed.apk
+          releaseFile: build/app/outputs/flutter-apk/app-${{ matrix.flavor }}-release-signed.apk
           track: internal
 
-      # 10. Dry-run message
-      - name: Dry-run message
+      # Dry-run message
+      - name: Dry-run message (${{ matrix.flavor }})
         if: ${{ github.event.inputs.publish != 'true' }}
         run: |
-          echo "Dry run complete: APK built and uploaded as artifact, signing & Play Store upload skipped."
+          echo "Dry run complete: APK for ${{ matrix.flavor }} built & uploaded as artifact. Signing & Play Store upload skipped."
 
   # ---------------------------------------------------------
   # iOS JOB (requires Mac)
@@ -87,6 +91,9 @@ jobs:
   ios:
     runs-on: macos-latest
     needs: build_playstore
+    strategy:
+      matrix:
+        flavor: [dev, staging, production]
 
     steps:
       - name: Checkout Code
@@ -100,31 +107,25 @@ jobs:
       - name: Install Dependencies
         run: flutter pub get
 
-      - name: Build IPA (Dry Run)
-        if: ${{ github.event.inputs.publish != 'true' }}
-        run: flutter build ipa --release
-
-      - name: Upload IPA Artifact (Dry Run)
-        if: ${{ github.event.inputs.publish != 'true' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios-ipa
-          path: build/ios/ipa/*.ipa
-
-      - name: Install Fastlane
-        if: ${{ github.event.inputs.publish == 'true' }}
-        run: sudo gem install fastlane -NV
-
-      - name: Upload to TestFlight
-        if: ${{ github.event.inputs.publish == 'true' }}
-        env:
-          APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
-          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
-          FASTLANE_APPLE_ID: ${{ secrets.APPLE_ID }}
+      # Install CocoaPods
+      - name: Install Pods (${{ matrix.flavor }})
         run: |
           cd ios
-          fastlane beta
+          pod install --repo-update
 
-      - name: iOS Dry Run Complete
-        if: ${{ github.event.inputs.publish != 'true' }}
-        run: echo "iOS dry-run complete."
+      - name: Build unsigned IPA (${{ matrix.flavor }})
+        run: |
+          flutter build ios --release --no-codesign --flavor ${{ matrix.flavor }}
+          mkdir -p build/ios/ipa/${{ matrix.flavor }}/Payload
+          cp -r build/ios/iphoneos/Runner.app build/ios/ipa/${{ matrix.flavor }}/Payload/
+          cd build/ios/ipa/${{ matrix.flavor }}
+          zip -r Runner-${{ matrix.flavor }}.ipa Payload
+
+      - name: Upload IPA Artifact (${{ matrix.flavor }})
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-ipa-${{ matrix.flavor }}
+          path: build/ios/ipa/${{ matrix.flavor }}/Runner-${{ matrix.flavor }}.ipa
+
+      - name: iOS Dry Run Complete (${{ matrix.flavor }})
+        run: echo "iOS dry-run complete for ${{ matrix.flavor }}. Signing & TestFlight skipped."

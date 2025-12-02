@@ -7,7 +7,6 @@ on:
       - main
 
 jobs:
-
   # ---------------------------------------------------------
   # JOB 1 — WEB DEPLOY (RUNS ON UBUNTU)
   # ---------------------------------------------------------
@@ -16,6 +15,9 @@ jobs:
     env:
       FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
       FIREBASE_PROJECT_ID: corekit-sdk-99a43
+    strategy:
+      matrix:
+        flavor: [dev, staging, production]
 
     steps:
       - name: Checkout repository
@@ -29,10 +31,10 @@ jobs:
       - name: Install Firebase CLI
         run: curl -sL https://firebase.tools | bash
 
-      - name: Build Flutter Web
-        run: flutter build web --release
+      - name: Build Flutter Web (${{ matrix.flavor }})
+        run: flutter build web --release --flavor ${{ matrix.flavor }}
 
-      - name: Deploy Web to Firebase Hosting
+      - name: Deploy Web to Firebase Hosting (${{ matrix.flavor }})
         uses: w9jds/firebase-action@v2.2.0
         with:
           args: deploy --only hosting --project ${{ env.FIREBASE_PROJECT_ID }}
@@ -45,6 +47,9 @@ jobs:
   ios_build:
     needs: web_deploy
     runs-on: macos-latest
+    strategy:
+      matrix:
+        flavor: [dev, staging, production]
 
     steps:
       - uses: actions/checkout@v4
@@ -55,50 +60,30 @@ jobs:
 
       - run: flutter pub get
 
-      # CERTIFICATE
-      - name: Install certificate
-        run: |
-          echo "${{ secrets.IOS_P12 }}" | base64 --decode > certificate.p12
-          
-          # Create and configure keychain
-          security create-keychain -p "github" build.keychain
-          security import certificate.p12 -k build.keychain -P "${{ secrets.IOS_P12_PASSWORD }}" -T /usr/bin/codesign
-          
-          # Use this keychain
-          security list-keychains -d user -s build.keychain
-          security default-keychain -s build.keychain
-          security unlock-keychain -p "github" build.keychain
-          security set-key-partition-list -S apple-tool:,apple: -s -k "github" build.keychain
-
-      # PROVISIONING PROFILE
-      - name: Install provisioning profile
-        run: |
-          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          echo "${{ secrets.IOS_PROVISION }}" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/adhoc.mobileprovision
-
       # COCOAPODS
       - run: |
           cd ios
           pod install --repo-update
 
-      # BUILD IPA
-      - name: Build IPA
+      # BUILD UNSIGNED IPA
+      - name: Build unsigned IPA (${{ matrix.flavor }})
         run: |
-          flutter build ipa --release --export-method ad-hoc
-          echo "IPA directory contents:"
-          ls -R build/ios/ipa
+          flutter build ios --release --no-codesign --flavor ${{ matrix.flavor }}
+          mkdir -p build/ios/ipa/${{ matrix.flavor }}/Payload
+          cp -r build/ios/iphoneos/Runner.app build/ios/ipa/${{ matrix.flavor }}/Payload/
+          cd build/ios/ipa/${{ matrix.flavor }}
+          zip -r Runner-${{ matrix.flavor }}.ipa Payload
 
-      - name: Find IPA
-        id: find_ipa
-        run: |
-          IPA_FILE=$(find build/ios/ipa -name "*.ipa" | head -n 1)
-          echo "ipa_path=$IPA_FILE" >> $GITHUB_OUTPUT
+      # CHECK IPA
+      - name: List IPA contents (${{ matrix.flavor }})
+        run: ls -lh build/ios/ipa/${{ matrix.flavor }}
 
-      - run: curl -sL https://firebase.tools | bash
+      # UPLOAD AS ARTIFACT
+      - name: Upload IPA artifact (${{ matrix.flavor }})
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-ipa-${{ matrix.flavor }}
+          path: build/ios/ipa/${{ matrix.flavor }}/Runner-${{ matrix.flavor }}.ipa
 
-      - name: Upload IPA to Firebase App Distribution
-        run: |
-          firebase appdistribution:distribute "${{ steps.find_ipa.outputs.ipa_path }}" \
-            --app 1:222652963588:ios:6270dd3b290c7aa9454e51 \
-            --release-notes "CI build" \
-            --token "${{ secrets.FIREBASE_TOKEN }}"
+      - name: Dry-run complete (${{ matrix.flavor }})
+        run: echo "iOS dry-run complete for ${{ matrix.flavor }}. Signing & TestFlight skipped."

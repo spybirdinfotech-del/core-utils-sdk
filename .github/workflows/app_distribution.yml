@@ -1,4 +1,4 @@
-name: Build & Distribute (Android)
+name: Build & Distribute (All Flavors)
 
 on:
   workflow_dispatch:
@@ -7,37 +7,50 @@ on:
       - main
 
 jobs:
-  build:
+
+  build_android:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        flavor: [dev, staging, production]
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          flutter-version: '3.35.7'
 
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build APK (Release)
-        run: flutter build apk --release
+      - name: Build APK & AAB (${{ matrix.flavor }})
+        run: |
+          flutter build apk --flavor ${{ matrix.flavor }} --release
+          flutter build appbundle --flavor ${{ matrix.flavor }} --release
 
-      - name: Upload to Firebase App Distribution
+      - name: Upload APK to Firebase App Distribution
         run: |
           npm install -g firebase-tools
-          firebase appdistribution:distribute build/app/outputs/flutter-apk/app-release.apk \
-          --app 1:222652963588:android:df44307667e8a5b3454e51  \
-          --token ${{ secrets.FIREBASE_TOKEN }}
+          firebase appdistribution:distribute build/app/outputs/flutter-apk/app-${{ matrix.flavor }}-release.apk \
+            --app 1:222652963588:android:df44307667e8a5b3454e51 \
+            --release-notes "${{ matrix.flavor }} CI build" \
+            --token ${{ secrets.FIREBASE_TOKEN }}
 
+      - name: Upload AAB as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-${{ matrix.flavor }}-build
+          path: build/app/outputs/bundle/release/app-${{ matrix.flavor }}-release.aab
 
-  ios_build:
-    name: iOS Build & Firebase Upload
+  build_ios:
     runs-on: macos-latest
+    strategy:
+      matrix:
+        flavor: [dev, staging, production]
     env:
-      FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
       FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
     steps:
@@ -52,27 +65,28 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build iOS app (no codesign)
-        run: flutter build ios --release --no-codesign
+      - name: Build iOS app (no codesign) (${{ matrix.flavor }})
+        run: flutter build ios --flavor ${{ matrix.flavor }} --release --no-codesign
 
-      - name: Create IPA from .app
+      - name: Create unsigned IPA (${{ matrix.flavor }})
         run: |
-          mkdir -p build/ios/ipa
-          cd build/ios/iphoneos
-          zip -r ../ipa/Runner.ipa Runner.app
+          mkdir -p build/ios/ipa/Payload
+          cp -r build/ios/iphoneos/Runner.app build/ios/ipa/Payload/
+          cd build/ios/ipa
+          zip -r Runner-${{ matrix.flavor }}.ipa Payload
 
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
 
-      - name: Upload IPA to Firebase
+      - name: Upload unsigned IPA to Firebase (${{ matrix.flavor }})
         run: |
-          ls build/ios/ipa
-          firebase appdistribution:distribute build/ios/ipa/Runner.ipa \
-          --app 1:222652963588:ios:6270dd3b290c7aa9454e51  \
-          --token ${{ secrets.FIREBASE_TOKEN }}
+          firebase appdistribution:distribute build/ios/ipa/Runner-${{ matrix.flavor }}.ipa \
+            --app 1:222652963588:ios:6270dd3b290c7aa9454e51 \
+            --release-notes "${{ matrix.flavor }} CI build" \
+            --token ${{ secrets.FIREBASE_TOKEN }}
 
-      - name: Upload IPA as artifact
+      - name: Upload IPA as GitHub artifact (${{ matrix.flavor }})
         uses: actions/upload-artifact@v4
         with:
-          name: ios-build
-          path: build/ios/ipa/Runner.ipa
+          name: ios-${{ matrix.flavor }}-build
+          path: build/ios/ipa/Runner-${{ matrix.flavor }}.ipa
