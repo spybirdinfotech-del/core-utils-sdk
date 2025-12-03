@@ -46,6 +46,8 @@ jobs:
           commit_message: "CI: Auto-increment version to $NEW_VERSION"
           commit_user_name: github-actions[bot]
           commit_user_email: 41898282+github-actions[bot]@users.noreply.github.com
+          push_options: --force       # ⚡ Force push to remote
+          skip_dirty_check: true      # Skip if nothing changed
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
