@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Scheme
+   LastUpgradeVersion="1430"
+   version="1.3">
+   <BuildAction parallelizeBuildables="YES">
+      <BuildActionEntries>
+         <BuildActionEntry buildForRunning="YES">
+            <BuildableReference
+               BlueprintName="Runner"
+               BuildableName="Runner.app"
+               BlueprintIdentifier="RUNNER_TARGET_ID"
+               ReferencedContainer="container:Runner.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+      </BuildActionEntries>
+   </BuildAction>
+
+   <LaunchAction
+      buildConfiguration="Release-staging">
+      <BuildableProductRunnable>
+         <BuildableReference
+            BlueprintName="Runner"
+            BuildableName="Runner.app"
+            BlueprintIdentifier="RUNNER_TARGET_ID"
+            ReferencedContainer="container:Runner.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
+   </LaunchAction>
+</Scheme>

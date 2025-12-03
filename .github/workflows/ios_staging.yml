@@ -1,0 +1,55 @@
+name: iOS Build - Staging
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  ios_staging:
+    name: Build iOS (Staging)
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Auto Version Upgrade (Info.plist)
+        run: |
+          PLIST="ios/Runner/Info.plist"
+          VERSION=$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" "$PLIST")
+          BUILD=$(/usr/libexec/PlistBuddy -c "Print CFBundleVersion" "$PLIST")
+          NEW_BUILD=$((BUILD + 1))
+
+          /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $NEW_BUILD" "$PLIST"
+
+          echo "New Version: $VERSION ($NEW_BUILD)"
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.7'
+
+      - run: flutter clean
+      - run: flutter pub get
+      - run: flutter analyze || true
+
+      - name: Skip pod install (Staging)
+        run: echo "Skipping pod install for staging"
+
+      - name: Build iOS (Staging)
+        run: |
+          flutter build ios --release --no-codesign --dart-define=FLAVOR=staging
+
+          mkdir -p build/ios/ipa/staging/Payload
+          cp -r build/ios/iphoneos/Runner.app build/ios/ipa/staging/Payload/
+
+          cd build/ios/ipa/staging
+          zip -r Runner-staging.ipa Payload
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-staging
+          path: build/ios/ipa/staging/Runner-staging.ipa

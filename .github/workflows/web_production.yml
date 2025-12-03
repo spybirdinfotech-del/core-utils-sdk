@@ -1,0 +1,44 @@
+name: Web Production
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build_web_prod:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.7'
+
+      - run: flutter pub get
+
+      - name: Auto Version Upgrade
+        run: |
+          version_line=$(grep "^version:" pubspec.yaml)
+          version_number=$(echo $version_line | cut -d ' ' -f2 | cut -d+ -f1)
+          build_number=$(echo $version_line | cut -d+ -f2)
+          IFS='.' read -r major minor patch <<< "$version_number"
+          patch=$((patch + 1))
+          new_version_number="$major.$minor.$patch"
+          new_build_number=$((build_number + 1))
+          new_version="version: $new_version_number+$new_build_number"
+          sed -i "s/^version:.*/$new_version/" pubspec.yaml
+          echo "Updated version: $new_version"
+
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Auto Version Bump"
+
+      - run: flutter analyze || true
+
+      - name: Build Web Production
+        run: flutter build web --release --dart-define=FLAVOR=production
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web-production
+          path: build/web

@@ -1,0 +1,97 @@
+name: Android Play store - production
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: 'true to upload to Play Store'
+        required: false
+        default: 'false'
+  push:
+    branches: [ main ]
+
+jobs:
+
+  build_playstore:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        flavor: [production]
+
+    steps:
+      # Checkout project
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Install Flutter
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - run: flutter clean
+
+      # Install dependencies
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Auto Version Upgrade (Gradle)
+        run: |
+          FILE="android/app/build.gradle"
+          VERSION_CODE=$(grep "versionCode" $FILE | awk '{print $2}')
+          VERSION_NAME=$(grep "versionName" $FILE | awk -F '"' '{print $2}')
+          NEW_VERSION_CODE=$((VERSION_CODE + 1))
+          sed -i "s/versionCode $VERSION_CODE/versionCode $NEW_VERSION_CODE/" $FILE
+          echo "versionName remains: $VERSION_NAME, versionCode bumped: $NEW_VERSION_CODE"
+
+      # Build APK
+      - name: Build APK (production)
+        run: flutter build apk --release --flavor production
+
+      # Upload APK artifact (for dry-run/manual testing)
+      - name: Upload APK artifact (production)
+        if: ${{ github.event.inputs.publish != 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-apk-production
+          path: build/app/outputs/flutter-apk/app-production-release.apk
+
+      # Install Android SDK Build Tools 34 manually
+      - name: Install Android Build Tools 34
+        run: yes | sudo ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager "build-tools;34.0.0"
+
+      # Set up Java 11 for apksigner
+      - name: Set up Java 11
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+
+      # Sign APK (only if publish is true)
+      - name: Sign APK (production)
+        if: ${{ github.event.inputs.publish == 'true' }}
+        uses: r0adkll/sign-android-release@v1
+        with:
+          releaseDirectory: build/app/outputs/flutter-apk
+          signingKeyBase64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          alias: ${{ secrets.ANDROID_KEYSTORE_ALIAS }}
+          keyStorePassword: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          keyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        env:
+          BUILD_TOOLS_VERSION: "34.0.0"
+
+      # Upload to Google Play (only if publish is true)
+      - name: Upload to Play Store (production)
+        if: ${{ github.event.inputs.publish == 'true' }}
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJson: ${{ secrets.GOOGLE_PLAY_JSON }}
+          packageName: com.corekit.app
+          releaseFile: build/app/outputs/flutter-apk/app-production-release-signed.apk
+          track: internal
+
+      # Dry-run message
+      - name: Dry-run message (production)
+        if: ${{ github.event.inputs.publish != 'true' }}
+        run: |
+          echo "Dry run complete: APK for production built & uploaded as artifact. Signing & Play Store upload skipped."

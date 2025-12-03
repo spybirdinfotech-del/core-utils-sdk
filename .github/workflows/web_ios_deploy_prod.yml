@@ -1,0 +1,49 @@
+name: Deploy iOS Production
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  ios_build_prod:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        flavor: [production]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - run: flutter pub get
+
+      # COCOAPODS
+      - run: |
+          cd ios
+          pod install --repo-update
+
+      # BUILD UNSIGNED IPA
+      - name: Build unsigned IPA (production)
+        run: |
+          flutter build ios --release --no-codesign --flavor production
+          mkdir -p build/ios/ipa/${{ matrix.flavor }}/Payload
+          cp -r build/ios/iphoneos/Runner.app build/ios/ipa/${{ matrix.flavor }}/Payload/
+          cd build/ios/ipa/${{ matrix.flavor }}
+          zip -r Runner-${{ matrix.flavor }}.ipa Payload
+
+      - name: List IPA contents
+        run: ls -lh build/ios/ipa/${{ matrix.flavor }}
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-ipa-${{ matrix.flavor }}
+          path: build/ios/ipa/${{ matrix.flavor }}/Runner-${{ matrix.flavor }}.ipa
+
+      - name: Dry run complete
+        run: echo "iOS PRODUCTION IPA build complete."

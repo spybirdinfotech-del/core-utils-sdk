@@ -1,0 +1,36 @@
+name: Deploy Web - Production
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  web_deploy:
+    runs-on: ubuntu-latest
+    env:
+      FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+      FIREBASE_PROJECT_ID: corekit-sdk-99a43
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Install Firebase CLI
+        run: curl -sL https://firebase.tools | bash
+
+      - name: Build Flutter Web (production)
+        run: flutter build web --release -t lib/main_production.dart
+
+      - name: Deploy Web to Firebase Hosting (production)
+        uses: w9jds/firebase-action@v2.2.0
+        with:
+          args: deploy --only hosting --project ${{ env.FIREBASE_PROJECT_ID }}
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}

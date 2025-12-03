@@ -1,0 +1,84 @@
+name: Firebase Distribute (Android dev)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build_android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    # RUN FLAVORS ONE-BY-ONE
+    strategy:
+      max-parallel: 1
+      matrix:
+        flavor: [ dev ]
+
+    env:
+      GRADLE_WATCH_FREQUENCY: "0"
+      GRADLE_OPTS: "-Dorg.gradle.vfs.watch=false"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.7' # Adjust to your desired version
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # Auto Version Upgrade (Gradle)
+      - name: Auto Version Upgrade (Gradle)
+        run: |
+          FILE="android/app/build.gradle"
+          VERSION_CODE=$(grep "versionCode" $FILE | awk '{print $2}')
+          VERSION_NAME=$(grep "versionName" $FILE | awk -F '"' '{print $2}')
+          NEW_VERSION_CODE=$((VERSION_CODE + 1))
+          sed -i "s/versionCode $VERSION_CODE/versionCode $NEW_VERSION_CODE/" $FILE
+          echo "versionName remains: $VERSION_NAME, versionCode bumped: $NEW_VERSION_CODE"  
+
+      - name: Analyze
+        run: flutter analyze || true
+
+      # ---- ANDROID APK BUILD ----
+      - name: Build APK (dev)
+        run: |
+          flutter clean
+          flutter build apk --flavor dev --release --no-tree-shake-icons
+        timeout-minutes: 20
+
+      - name: Install Firebase Tools
+        run: npm install -g firebase-tools
+
+      # ---- UPLOAD APK TO FIREBASE ----
+      - name: Upload APK to Firebase App Distribution (dev)
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: |
+          # Assign Firebase App ID for dev
+          APP_ID="${{ secrets.FIREBASE_APP_ID_ANDROID_DEV }}"
+
+          # Fail if the secret is missing
+          if [ -z "$APP_ID" ]; then
+            echo "::error::ERROR: Firebase App ID is empty for dev. Check your GitHub Secrets."
+            exit 1
+          fi
+
+          # Distribute the APK
+          APK_PATH="build/app/outputs/flutter-apk/app-dev-release.apk"
+          firebase appdistribution:distribute "$APK_PATH" \
+            --app "$APP_ID" \
+            --release-notes "dev CI build" \
+            --token "$FIREBASE_TOKEN"
+
+      - name: Upload APK as Artifact (dev)
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-dev-apk
+          path: build/app/outputs/flutter-apk/app-dev-release.apk

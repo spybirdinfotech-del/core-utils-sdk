@@ -1,0 +1,66 @@
+name: Ios App Store - dev
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: 'true to upload to Play Store'
+        required: false
+        default: 'false'
+  push:
+    branches: [ main ]
+
+jobs:
+  ios:
+    runs-on: macos-latest
+    needs: build_playstore
+    strategy:
+      matrix:
+        flavor: [ dev ]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Auto Version Upgrade (Info.plist)
+        run: |
+          PLIST="ios/Runner/Info.plist"
+          VERSION=$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" "$PLIST")
+          BUILD=$(/usr/libexec/PlistBuddy -c "Print CFBundleVersion" "$PLIST")
+          NEW_BUILD=$((BUILD + 1))
+          
+          /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $NEW_BUILD" "$PLIST"
+          
+          echo "New Version: $VERSION ($NEW_BUILD)"
+
+      # Install CocoaPods
+      - name: Install Pods (dev)
+        run: |
+          cd ios
+          pod install --repo-update
+
+      - name: Build unsigned IPA (dev)
+        run: |
+          flutter build ios --release --no-codesign --flavor dev
+          mkdir -p build/ios/ipa/dev/Payload
+          cp -r build/ios/iphoneos/Runner.app build/ios/ipa/dev/Payload/
+          cd build/ios/ipa/dev
+          zip -r Runner-dev.ipa Payload
+
+      - name: Upload IPA Artifact (dev)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-ipa-dev
+          path: build/ios/ipa/dev/Runner-dev.ipa
+
+      - name: iOS Dry Run Complete (dev)
+        run: echo "iOS dry-run complete for dev. Signing & TestFlight skipped."

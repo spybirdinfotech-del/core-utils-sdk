@@ -1,0 +1,61 @@
+name: Windows Staging
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build_windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.7'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze (warnings allowed)
+        run: flutter analyze || true
+
+      - name: Auto Version Upgrade (PowerShell)
+        shell: pwsh
+        run: |
+          $content = Get-Content pubspec.yaml
+          $versionLine = $content | Select-String '^version:' | ForEach-Object { $_.Line }
+
+          Write-Host "Current Version Line: $versionLine"
+
+          if ($versionLine -match 'version:\s*([0-9\.]+)\+([0-9]+)') {
+              $version = $matches[1]
+              $build = [int]$matches[2]
+
+              $parts = $version.Split('.')
+              $major = $parts[0]
+              $minor = $parts[1]
+              $patch = [int]$parts[2] + 1
+
+              $newVersion = "$major.$minor.$patch"
+              $newBuild = $build + 1
+              $newLine = "version: $newVersion+$newBuild"
+
+              Write-Host "New Version: $newLine"
+
+              (Get-Content pubspec.yaml) -replace '^version:.*', $newLine | Set-Content pubspec.yaml
+          }
+
+      - name: Build Windows (Staging)
+        run: flutter build windows --release --dart-define=FLAVOR=staging
+
+      - name: Upload Windows Build
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-staging
+          path: build/windows/runner/Release

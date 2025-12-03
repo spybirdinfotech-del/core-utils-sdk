@@ -1,0 +1,62 @@
+name: iOS Build - Production
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  ios_production:
+    name: Build iOS (Production)
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Auto Version Upgrade (Info.plist)
+        run: |
+          PLIST="ios/Runner/Info.plist"
+          VERSION=$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" "$PLIST")
+          BUILD=$(/usr/libexec/PlistBuddy -c "Print CFBundleVersion" "$PLIST")
+          NEW_BUILD=$((BUILD + 1))
+
+          /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $NEW_BUILD" "$PLIST"
+
+          echo "New Version: $VERSION ($NEW_BUILD)"
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.7'
+
+      - run: flutter clean
+      - run: flutter pub get
+      - run: flutter analyze || true
+
+      - name: Install CocoaPods (Production)
+        run: |
+          rm -rf ~/Library/Developer/Xcode/DerivedData/*
+          cd ios
+          pod repo update
+          pod install
+
+      - name: Build iOS (Production)
+        run: |
+          flutter build ios --release --no-codesign --dart-define=FLAVOR=production
+
+          mkdir -p build/ios/ipa/production/Payload
+          cp -r build/ios/iphoneos/Runner.app build/ios/ipa/production/Payload/
+
+          cd build/ios/ipa/production
+          zip -r Runner-production.ipa Payload
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-production
+          path: build/ios/ipa/production/Runner-production.ipa
+
+      - name: Completed (Production)
+        run: echo "Unsigned IPA build completed for Production."

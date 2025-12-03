@@ -1,0 +1,51 @@
+name: Deploy ios dev
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  ios_build:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        flavor: [dev]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - run: flutter pub get
+
+      # COCOAPODS
+      - run: |
+          cd ios
+          pod install --repo-update
+
+      # BUILD UNSIGNED IPA
+      - name: Build unsigned IPA (dev)
+        run: |
+          flutter build ios --release --no-codesign --flavor dev
+          mkdir -p build/ios/ipa/${{ matrix.flavor }}/Payload
+          cp -r build/ios/iphoneos/Runner.app build/ios/ipa/${{ matrix.flavor }}/Payload/
+          cd build/ios/ipa/${{ matrix.flavor }}
+          zip -r Runner-${{ matrix.flavor }}.ipa Payload
+
+      # CHECK IPA
+      - name: List IPA contents (${{ matrix.flavor }})
+        run: ls -lh build/ios/ipa/${{ matrix.flavor }}
+
+      # UPLOAD AS ARTIFACT
+      - name: Upload IPA artifact (${{ matrix.flavor }})
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-ipa-${{ matrix.flavor }}
+          path: build/ios/ipa/${{ matrix.flavor }}/Runner-${{ matrix.flavor }}.ipa
+
+      - name: Dry-run complete (${{ matrix.flavor }})
+        run: echo "iOS dry-run complete for ${{ matrix.flavor }}. Signing & TestFlight skipped."
