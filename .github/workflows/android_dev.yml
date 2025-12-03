@@ -13,8 +13,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Auto Increment Version
+        id: version_bump
         run: |
           VERSION_LINE=$(grep '^version:' pubspec.yaml)
           VERSION=$(echo $VERSION_LINE | cut -d ' ' -f 2)
@@ -24,11 +27,17 @@ jobs:
           NEW_VERSION="${BASE_VERSION}+${NEW_BUILD_NUMBER}"
           sed -i "s/version: .*/version: ${NEW_VERSION}/" pubspec.yaml
           echo "Version updated to: $NEW_VERSION"
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
 
       - name: Commit Version Bump
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "CI: Auto-increment version to $NEW_VERSION"
+          commit_user_name: github-actions[bot]
+          commit_user_email: 41898282+github-actions[bot]@users.noreply.github.com
+          push: true
+          push_options: "--force"
+          git_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2

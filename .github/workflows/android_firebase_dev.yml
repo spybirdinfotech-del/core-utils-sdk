@@ -36,12 +36,18 @@ jobs:
       # Auto Version Upgrade (Gradle)
       - name: Auto Version Upgrade (Gradle)
         run: |
+          cd core-utils-sdk
           FILE="android/app/build.gradle"
-          VERSION_CODE=$(grep "versionCode" $FILE | awk '{print $2}')
-          VERSION_NAME=$(grep "versionName" $FILE | awk -F '"' '{print $2}')
-          NEW_VERSION_CODE=$((VERSION_CODE + 1))
-          sed -i "s/versionCode $VERSION_CODE/versionCode $NEW_VERSION_CODE/" $FILE
-          echo "versionName remains: $VERSION_NAME, versionCode bumped: $NEW_VERSION_CODE"  
+          if [ -f "$FILE" ]; then
+            VERSION_CODE=$(grep "versionCode" $FILE | awk '{print $2}')
+            VERSION_NAME=$(grep "versionName" $FILE | awk -F '"' '{print $2}')
+            NEW_VERSION_CODE=$((VERSION_CODE + 1))
+            sed -i "s/versionCode $VERSION_CODE/versionCode $NEW_VERSION_CODE/" $FILE
+            echo "versionName remains: $VERSION_NAME, versionCode bumped: $NEW_VERSION_CODE"
+          else
+            echo "::warning::$FILE not found. Skipping version bump."
+          fi
+      
 
       - name: Analyze
         run: flutter analyze || true
