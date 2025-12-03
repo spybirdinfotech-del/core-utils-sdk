@@ -4,6 +4,9 @@ on:
   push:
     branches: [ main ]
 
+permissions:
+  contents: write
+
 jobs:
   build_web_staging:
     runs-on: ubuntu-latest
@@ -35,7 +38,10 @@ jobs:
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "Auto Version Bump"
-          push: true
+          commit_user_name: github-actions[bot]
+          commit_user_email: 41898282+github-actions[bot]@users.noreply.github.com
+          push_options: --force       # ⚡ Force push to remote
+          skip_dirty_check: true      # Skip if nothing changed
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
