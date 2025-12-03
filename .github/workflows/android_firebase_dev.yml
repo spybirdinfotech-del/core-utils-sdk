@@ -36,7 +36,6 @@ jobs:
       # Auto Version Upgrade (Gradle)
       - name: Auto Version Upgrade (Gradle)
         run: |
-          cd core-utils-sdk
           FILE="android/app/build.gradle"
           if [ -f "$FILE" ]; then
             VERSION_CODE=$(grep "versionCode" $FILE | awk '{print $2}')

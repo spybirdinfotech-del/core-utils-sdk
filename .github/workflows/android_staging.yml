@@ -35,9 +35,8 @@ jobs:
           commit_message: "CI: Auto-increment version to $NEW_VERSION"
           commit_user_name: github-actions[bot]
           commit_user_email: 41898282+github-actions[bot]@users.noreply.github.com
-          push: true
-          push_options: "--force"
-          git_token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
