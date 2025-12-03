@@ -40,8 +40,6 @@ jobs:
           sed -i "s/version: .*/version: ${NEW_VERSION}/" pubspec.yaml
           echo "Version updated to: $NEW_VERSION"
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
-          
-          # 5️⃣ Commit Version Bump
       - name: Commit Version Bump
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
