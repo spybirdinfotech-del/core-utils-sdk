@@ -13,14 +13,23 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          persist-credentials: false
 
+        # 2️⃣ Setup Flutter
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.7'
+
+          # 3️⃣ Install dependencies
+      - name: Install dependencies
+        run: flutter pub get
+
+        # 4️⃣ Auto Increment Version
       - name: Auto Increment Version
         id: version_bump
         run: |
           VERSION_LINE=$(grep '^version:' pubspec.yaml)
-          VERSION=$(echo $VERSION_LINE | cut -d ' ' -f 2)
+          VERSION=$(echo $VERSION_LINE | cut -d ' ' -f2)
           BASE_VERSION=$(echo $VERSION | cut -d+ -f1)
           BUILD_NUMBER=$(echo $VERSION | cut -d+ -f2)
           NEW_BUILD_NUMBER=$((BUILD_NUMBER + 1))
@@ -28,7 +37,8 @@ jobs:
           sed -i "s/version: .*/version: ${NEW_VERSION}/" pubspec.yaml
           echo "Version updated to: $NEW_VERSION"
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
-
+          
+          # 5️⃣ Commit Version Bump
       - name: Commit Version Bump
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
@@ -37,14 +47,6 @@ jobs:
           commit_user_email: 41898282+github-actions[bot]@users.noreply.github.com
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.35.7'
-
-      - name: Install dependencies
-        run: flutter pub get
 
       - name: Analyze
         run: flutter analyze || true
