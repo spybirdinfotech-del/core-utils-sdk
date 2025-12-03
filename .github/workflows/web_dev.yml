@@ -14,7 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          persist-credentials: false
+          persist-credentials: true
 
       - uses: subosito/flutter-action@v2
         with:
@@ -43,6 +43,7 @@ jobs:
           commit_user_email: 41898282+github-actions[bot]@users.noreply.github.com
           push_options: --force       # ⚡ Force push to remote
           skip_dirty_check: true      # Skip if nothing changed
+          file_pattern: pubspec.yaml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
