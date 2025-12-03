@@ -51,6 +51,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+
       - name: Analyze
         run: flutter analyze || true
 
