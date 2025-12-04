@@ -13,6 +13,8 @@ class CustomTextFieldTheme {
   final Color? cursorColor;
   final double? cursorHeight;
   final EdgeInsetsGeometry? contentPadding;
+  final Color? fillColor;
+  final bool? filled;
 
 
   const CustomTextFieldTheme({
@@ -28,5 +30,7 @@ class CustomTextFieldTheme {
     this.cursorColor,
     this.cursorHeight,
     this.contentPadding,
+    this.fillColor,
+    this.filled,
   });
 }

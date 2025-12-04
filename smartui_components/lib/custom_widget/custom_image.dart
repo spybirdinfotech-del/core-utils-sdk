@@ -27,7 +27,7 @@ class CustomImageWidget extends StatelessWidget {
         width: width,
         height: height,
         fit: BoxFit.fill,
-        package: packageName,
+        // package: packageName,
       );
     }
     if (imagePath is File) {
@@ -41,7 +41,7 @@ class CustomImageWidget extends StatelessWidget {
           width: width,
           height: height,
           fit: BoxFit.fill,
-          package: packageName,
+          // package: packageName,
         ),
       );
     } else if (imagePath is Uint8List) {
@@ -55,7 +55,7 @@ class CustomImageWidget extends StatelessWidget {
           width: width,
           height: height,
           fit: BoxFit.fill,
-          package: packageName,
+          // package: packageName,
         ),
       );
     } else if (imagePath is String) {
@@ -73,7 +73,7 @@ class CustomImageWidget extends StatelessWidget {
                 width: width,
                 height: height,
                 fit: BoxFit.fill,
-                package: packageName,
+                // package: packageName,
               );
             },
             placeholderBuilder: (context) {
@@ -82,7 +82,7 @@ class CustomImageWidget extends StatelessWidget {
                 width: width,
                 height: height,
                 fit: BoxFit.fill,
-                package: packageName,
+                // package: packageName,
               );
             },
           );
@@ -92,7 +92,7 @@ class CustomImageWidget extends StatelessWidget {
             width: width,
             height: height,
             fit: boxFit ?? BoxFit.fill,
-            package: packageName,
+            // package: packageName,
             colorFilter: color != null ? ColorFilter.mode(color!, BlendMode.srcIn) : null,
             errorBuilder: (context, error, stackTrace) {
               return Image.asset(
@@ -100,7 +100,7 @@ class CustomImageWidget extends StatelessWidget {
                 width: width,
                 height: height,
                 fit: BoxFit.fill,
-                package: packageName,
+                // package: packageName,
               );
             },
             placeholderBuilder: (context) {
@@ -109,7 +109,7 @@ class CustomImageWidget extends StatelessWidget {
                 width: width,
                 height: height,
                 fit: BoxFit.fill,
-                package: packageName,
+                // package: packageName,
               );
             },
           );
@@ -138,7 +138,7 @@ class CustomImageWidget extends StatelessWidget {
               width: width,
               height: height,
               fit: BoxFit.fill,
-              package: packageName,
+              // package: packageName,
             ),
           );
         } else {
@@ -148,14 +148,14 @@ class CustomImageWidget extends StatelessWidget {
             height: height,
             fit: boxFit,
             color: color,
-            package: packageName,
+            // package: packageName,
             alignment: FractionalOffset.center,
             errorBuilder: (context, error, stackTrace) => Image.asset(
               AssetsIcons.imgNoAvailable,
               width: width,
               height: height,
               fit: BoxFit.fill,
-              package: packageName,
+              // package: packageName,
             ),
           );
         }
