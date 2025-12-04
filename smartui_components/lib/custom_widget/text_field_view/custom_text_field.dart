@@ -84,7 +84,7 @@ class CustomTextFormFieldWidget extends StatelessWidget {
   final Widget? prefixIcon;
   final Widget? prefix;
   final Widget? suffixIcon;
-  final Null Function(dynamic value)? onChanged;
+  final void Function(dynamic value)? onChanged;
   final String? hintText;
   final TextStyle? hintStyle;
   final String? labelText;
