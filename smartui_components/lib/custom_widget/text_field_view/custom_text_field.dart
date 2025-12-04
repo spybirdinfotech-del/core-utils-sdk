@@ -17,6 +17,7 @@ class CustomTextFormFieldWidget extends StatelessWidget {
     this.enabledBorder,
     this.focusedBorder,
     this.errorBorder,
+    this.disableborder,
     dynamic border,
     this.textColor,
     this.validation,
@@ -72,6 +73,7 @@ class CustomTextFormFieldWidget extends StatelessWidget {
   final dynamic enabledBorder;
   final dynamic focusedBorder;
   final dynamic errorBorder;
+  final dynamic disableBorder;
   final dynamic border;
   final Color? textColor;
   final bool? validation;
@@ -181,6 +183,7 @@ class CustomTextFormFieldWidget extends StatelessWidget {
         errorBorder: errorBorder ?? theme.errorBorder,
         border: border ?? theme.border,
         enabledBorder: enabledBorder ?? theme.enableBorder ?? border,
+        disabledBorder: disableBorder ?? theme.disableBorder,
         focusedBorder: isRounded
             ? OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
