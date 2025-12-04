@@ -6,7 +6,10 @@ class CustomButtonTheme {
   final Color? buttonColor;
   final TextStyle? buttonTextStyle;
   final BorderRadiusGeometry? borderRadius;
-  final Decoration? decoration;
+  final Gradient? gradient;
+  final List<BoxShadow>? boxShadow;
+  final BoxBorder? border;
+  final BoxShape? shape;
 
   const CustomButtonTheme({
     this.height,
@@ -14,6 +17,9 @@ class CustomButtonTheme {
     this.buttonColor,
     this.buttonTextStyle,
     this.borderRadius,
-    this.decoration
+    this.gradient,
+    this.boxShadow,
+    this.border,
+    this.shape,
   });
 }

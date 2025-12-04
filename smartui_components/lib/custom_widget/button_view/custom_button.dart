@@ -12,7 +12,10 @@ class CustomButton extends StatelessWidget {
   final bool isLoading;
   final Widget? prefixIcon;
   final Widget? suffixIcon;
-  final Decoration? decoration;
+  final Gradient? gradient;
+  final List<BoxShadow>? boxShadow;
+  final BoxBorder? border;
+  final BoxShape? shape;
 
   const CustomButton({
     super.key,
@@ -26,25 +29,29 @@ class CustomButton extends StatelessWidget {
     this.isLoading = false,
     this.prefixIcon,
     this.suffixIcon,
-    this.decoration
+    this.gradient,
+    this.boxShadow,
+    this.border,
+    this.shape,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = ButtonThemeConfig.theme;
 
-    return Container(
-      width: width ?? theme.width ?? double.infinity,
-      height: height ?? theme.height ?? 48,
-      decoration: decoration ?? theme.decoration, //button gradient
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color ?? theme.buttonColor ?? Theme.of(context).primaryColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: borderRadius ?? theme.borderRadius ?? BorderRadius.circular(10),
-          ),
-        ),
-        onPressed: isLoading ? null : onTap,
+    return InkWell(
+      onTap: isLoading ? null : onTap,
+      child: Container(
+        width: width ?? theme.width ?? double.infinity,
+        height: height ?? theme.height ?? 48,
+        decoration: BoxDecoration(
+          gradient: gradient ?? theme.gradient,
+          color: color ?? theme.buttonColor ?? Theme.of(context).primaryColor,
+          boxShadow: boxShadow ?? theme.boxShadow,
+          border: border ?? theme.border,
+          borderRadius: borderRadius ?? theme.borderRadius ?? BorderRadius.circular(10),
+          shape: shape ?? theme.shape!
+        ), //button gradient
         child: isLoading
             ? const SizedBox(
           height: 20,
