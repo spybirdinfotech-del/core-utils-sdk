@@ -184,12 +184,12 @@ class CustomTextFormFieldWidget extends StatelessWidget {
         border: border ?? theme.border,
         enabledBorder: enabledBorder ?? theme.enableBorder ?? border,
         disabledBorder: disableBorder ?? theme.disableBorder,
-        focusedBorder: isRounded
-            ? OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: Colors.grey, width: 1),
-              )
-            : focusedBorder ?? theme.focusBorder ?? UnderlineInputBorder(borderSide: BorderSide(color: Colors.grey, width: 1)),
+        focusedBorder: focusedBorder ??
+            theme.focusBorder ??
+            OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide(color: Colors.grey, width: 1),
+            ),
         prefixIconConstraints: const BoxConstraints(maxHeight: 20, minWidth: 30),
         prefix: prefix,
         prefixIcon: prefixTextValue != null && prefixTextValue != ''
