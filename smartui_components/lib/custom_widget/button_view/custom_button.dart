@@ -50,36 +50,23 @@ class CustomButton extends StatelessWidget {
           boxShadow: boxShadow ?? theme.boxShadow,
           border: border ?? theme.border,
           borderRadius: borderRadius ?? theme.borderRadius ?? BorderRadius.circular(10),
-          shape: shape ?? theme.shape ?? BoxShape.rectangle
+          shape: shape ?? theme.shape ?? BoxShape.rectangle,
         ), //button gradient
-        child: isLoading
-            ? const SizedBox(
-          height: 20,
-          width: 20,
-          child: CircularProgressIndicator(strokeWidth: 2),
-        )
-            : Row(
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (prefixIcon != null) ...[
-              prefixIcon!,
-              const SizedBox(width: 8),
-            ],
-            Text(
-              title,
-              style: textStyle ??
-                  theme.buttonTextStyle ??
-                  const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
+            if (prefixIcon != null) ...[prefixIcon!, const SizedBox(width: 8)],
+            isLoading
+                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                : Text(
+                    title,
+                    style:
+                        textStyle ??
+                        theme.buttonTextStyle ??
+                        const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
                   ),
-            ),
-            if (suffixIcon != null) ...[
-              const SizedBox(width: 8),
-              suffixIcon!,
-            ],
+            if (suffixIcon != null) ...[const SizedBox(width: 8), suffixIcon!],
           ],
         ),
       ),
