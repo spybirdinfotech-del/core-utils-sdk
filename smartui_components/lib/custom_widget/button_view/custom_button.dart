@@ -50,7 +50,7 @@ class CustomButton extends StatelessWidget {
           boxShadow: boxShadow ?? theme.boxShadow,
           border: border ?? theme.border,
           borderRadius: borderRadius ?? theme.borderRadius ?? BorderRadius.circular(10),
-          shape: shape ?? theme.shape!
+          shape: shape ?? theme.shape ?? BoxShape.rectangle
         ), //button gradient
         child: isLoading
             ? const SizedBox(
