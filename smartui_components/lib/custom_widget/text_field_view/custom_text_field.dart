@@ -17,7 +17,7 @@ class CustomTextFormFieldWidget extends StatelessWidget {
     this.enabledBorder,
     this.focusedBorder,
     this.errorBorder,
-    this.disableborder,
+    this.disableBorder,
     dynamic border,
     this.textColor,
     this.validation,
