@@ -12,6 +12,7 @@ class CustomButton extends StatelessWidget {
   final bool isLoading;
   final Widget? prefixIcon;
   final Widget? suffixIcon;
+  final Decoration? decoration;
 
   const CustomButton({
     super.key,
@@ -25,15 +26,17 @@ class CustomButton extends StatelessWidget {
     this.isLoading = false,
     this.prefixIcon,
     this.suffixIcon,
+    this.decoration
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = ButtonThemeConfig.theme;
 
-    return SizedBox(
+    return Container(
       width: width ?? theme.width ?? double.infinity,
       height: height ?? theme.height ?? 48,
+      decoration: decoration ?? theme.decoration, //button gradient
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor: color ?? theme.buttonColor ?? Theme.of(context).primaryColor,

@@ -6,6 +6,7 @@ class CustomButtonTheme {
   final Color? buttonColor;
   final TextStyle? buttonTextStyle;
   final BorderRadiusGeometry? borderRadius;
+  final Decoration? decoration;
 
   const CustomButtonTheme({
     this.height,
@@ -13,5 +14,6 @@ class CustomButtonTheme {
     this.buttonColor,
     this.buttonTextStyle,
     this.borderRadius,
+    this.decoration
   });
 }
