@@ -69,7 +69,7 @@ class CustomTextFormFieldWidget extends StatelessWidget {
   final Color? fillColor;
   final bool? filled;
   final bool? isDense;
-  final Align? label;
+  final Widget? label;
   final dynamic enabledBorder;
   final dynamic focusedBorder;
   final dynamic errorBorder;
