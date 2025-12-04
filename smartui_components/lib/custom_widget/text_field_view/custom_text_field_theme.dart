@@ -10,6 +10,7 @@ class CustomTextFieldTheme {
   final dynamic errorBorder;
   final dynamic focusBorder;
   final dynamic disableBorder;
+  final dynamic focusErrorBorder;
   final dynamic enableBorder;
   final Color? cursorColor;
   final double? cursorHeight;
@@ -28,6 +29,7 @@ class CustomTextFieldTheme {
     this.errorBorder,
     this.focusBorder,
     this.disableBorder,
+    this.focusErrorBorder,
     this.enableBorder,
     this.cursorColor,
     this.cursorHeight,
