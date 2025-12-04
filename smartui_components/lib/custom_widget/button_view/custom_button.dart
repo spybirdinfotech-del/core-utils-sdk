@@ -58,7 +58,7 @@ class CustomButton extends StatelessWidget {
           children: [
             if (prefixIcon != null) ...[prefixIcon!, const SizedBox(width: 8)],
             isLoading
-                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2,color: Colors.white,))
                 : Text(
                     title,
                     style:
