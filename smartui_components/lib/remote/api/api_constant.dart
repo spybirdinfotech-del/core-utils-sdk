@@ -18,6 +18,6 @@ class ApiConstant {
   static String highImportanceNotification = 'High Importance Notifications';
   static String notificationDescription = 'This channel is used for important notifications.';
   static String notificationIcon = '@mipmap/ic_launcher';
-  static String packageName = 'api_sdk';
+  static String packageName = 'smartui_components';
 
 }
