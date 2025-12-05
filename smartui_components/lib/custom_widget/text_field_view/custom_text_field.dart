@@ -151,7 +151,6 @@ class CustomTextFormFieldWidget extends StatelessWidget {
       focusNode: focusNode,
       onTapOutside: (event) {
         FocusManager.instance.primaryFocus?.unfocus();
-        textController.clear();
       },
       onTap: onTap,
       maxLines: maxLines ?? 1,

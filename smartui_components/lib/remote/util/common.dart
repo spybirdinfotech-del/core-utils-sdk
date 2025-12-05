@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../shared_pref/shared_prefence_manager.dart';
@@ -67,6 +69,35 @@ class Common {
       }
     } catch (e) {
       await launchUrl(Uri.parse("https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(address!)}"));
+    }
+  }
+
+  Future<bool> checkLocationPermission() async {
+    PermissionStatus permissionStatus = await Permission.location.status;
+
+    if (permissionStatus.isGranted) return true;
+
+    if (permissionStatus.isPermanentlyDenied) {
+      await openAppSettings();
+      return false;
+    }
+
+    return (await Permission.location.request()).isGranted;
+  }
+
+  Future<Position?> getCurrentLocation() async {
+    if (!await checkLocationPermission()) {
+      return null;
+    }
+    if (!await Geolocator.isLocationServiceEnabled()) return null;
+
+    try {
+      return await Geolocator.getCurrentPosition(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+          ));
+    } catch (e) {
+      return null;
     }
   }
 
